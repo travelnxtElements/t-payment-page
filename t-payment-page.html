@@ -1,0 +1,27 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="t-payment-page">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]</h2>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 't-payment-page',
+
+      properties: {
+        prop1: {
+          type: String,
+          value: 't-payment-page',
+        },
+      },
+
+    });
+  </script>
+</dom-module>
