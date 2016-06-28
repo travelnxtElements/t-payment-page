@@ -5,6 +5,7 @@
 <link rel="import" href="../t-checkbox/t-checkbox.html">
 <link rel="import" href="../t-button/t-button.html">
 <link rel="import" href="../t-section-header/t-section-header.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" />
 
 <dom-module id="t-payment-page">
@@ -25,13 +26,15 @@
         label="Payment Information">              
     </t-section-header>
 
-    <t-creditcard id="creditCard"></t-creditcard>
+    <t-creditcard 
+        id="creditCard">
+    </t-creditcard>
 
     <t-address 
         id="address"
         country-api="[[apiBaseUrl]]api/content/countries"
         base-geo-api="[[apiBaseUrl]]api/content"
-        query-params="?token=[[authToken]]">          
+        query-params="?token=[[authToken]]">
     </t-address>
 
     <div class="layout horizontal start section-small">
@@ -42,15 +45,26 @@
     </div>
 
     <div class="layout horizontal section-small">
-        <t-button label="Pay now" id="submit" class="primary flex" disabled="{{!checked}}" on-click="bookNow"></t-button>
+        <t-button 
+            label="Pay now" 
+            id="submit" 
+            class="primary flex" 
+            disabled="{{!checked}}" 
+            on-click="bookNow">              
+        </t-button>
     </div>
 
+    <iron-ajax id="paymentAjax" method="POST" content-type="application/json" verbose></iron-ajax>
   </template>
 
   <script>
     Polymer({
 
-      is: 't-payment-page',
+      is: 't-payment-page',      
+
+      observers:[
+          '_onItineraryUpdate(itinerary, passengerInfo)'
+      ],
 
       properties: {
 
@@ -82,13 +96,114 @@
            * <p>This property holds the value of web api URL format</p>
           */
           itinerary: {
-              type: Object,
-              observer:'_onItineraryUpdate'
+              type: Object
           },
+
+          passengerInfo: {
+              type: Object
+          }
       },
 
-      _onItineraryUpdate: function () {
-          this.$.address.pullCountryList();
+      _onItineraryUpdate: function (itinerary, passengerInfo) {
+          if (itinerary && passengerInfo) {
+              this.$.address.pullCountryList();          
+          }
+      },
+
+      bookNow: function () {
+          if (this.validate()) {
+              var bookingInfo = this._buildBookingRequest(payment);
+              console.log(bookingInfo);
+
+              var paymentAjax = document.querySelector('#paymentAjax');
+              paymentAjax.url = this.apiBaseUrl + 'api/ShoppingCart/book?token=' + this.authToken;
+              paymentAjax.body = JSON.stringify(bookingInfo);
+              paymentAjax.generateRequest();
+          }
+      },
+
+      _buildBookingRequest: function() {
+          var request = {
+              inventoriesInfo: [{
+                  id: 0,
+                  passengerIds: [],
+                  paymentIds: [],
+                  leadPassengerId: 0,
+                  paymentBreakups: []
+              }],
+              passengers: [],
+              payments: [],
+              insuranceInfo: []
+          };
+
+          this._getPassengers(request);
+
+          this._getPaymentInfo(request);
+
+          this._getPaymentBreakup(request);
+
+          return request;
+      },
+
+      _getPassengers: function (request) {
+
+          if (this.passengerInfo && this.passengerInfo.passengerList) {
+
+              for (var i = 0; i < this.passengerInfo.passengerList.length; i++) {
+                  request.inventoriesInfo[0].passengerIds.push(i);
+                  this.passengerInfo.passengerList[i].emailAddress = this.passengerInfo.email;
+                  this.passengerInfo.passengerList[i].phoneNumber = this.passengerInfo.phone;
+                  request.passengers.push(this.passengerInfo.passengerList[i]);
+              }
+          }        
+      },
+
+      _getPaymentInfo: function (request) {
+
+          request.inventoriesInfo[0].paymentIds.push(0);
+
+          //to be removed..
+          this.itinerary.isPostPaid = false;
+
+          if (this.itinerary.isPostPaid) {
+              request.payments.push([
+                  //post paid payment request here
+              ]);
+              return;
+          }
+
+          var payment = this._getCreditCardInfo();
+
+          request.payments.push(payment);
+      },
+
+      _getCreditCardInfo: function () {
+          var address = this.$.address.getAddress();
+          var payment = this.$.creditCard.getInfo();
+          payment.billingAddress = address;
+
+          return payment;
+      },
+
+      _getPaymentBreakup: function (request) {
+          var totalFare = this.itinerary.fare.components.find(function (component, index, array) {
+                    return component.type.toLowerCase() == 'totalfare';
+                });
+
+          if (totalFare) {
+              request.inventoriesInfo[0].paymentBreakups.push({
+                  "amount": totalFare.money,
+                  "paymentId": 0,
+                  "paymentType": "creditCard",
+                  "passengerId": null
+              });
+          }
+      },
+
+      validate: function () {
+          var isValid = true;
+          isValid = this.$.address.validate() && isValid;
+          return this.$.creditCard.validate() && isValid;
       }
 
     });
