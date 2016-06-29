@@ -17,9 +17,14 @@
       }
     </style>
 
-    <content></content>
-
     <t-notify id="notify"></t-notify>
+    
+    <t-car-itinerary-details
+        id="itineraryDetails"
+        is-collapsible
+        itinerary="[[itinerary]]"
+        search-criteria=[[searchCriteria]]>
+    </t-car-itinerary-details>
 
     <t-section-header 
         id="paymentHeader" 
@@ -60,13 +65,19 @@
   <script>
     Polymer({
 
-      is: 't-payment-page',      
+      is: 't-payment-page',
 
       observers:[
-          '_onItineraryUpdate(itinerary, passengerInfo)'
+          '_onItineraryUpdate(visible)'
       ],
 
       properties: {
+
+          visible: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
 
           /*
            * <p>This string is query string containing token value</p>
@@ -101,12 +112,17 @@
 
           passengerInfo: {
               type: Object
+          },
+
+          searchCriteria: {
+            type: Object
           }
       },
 
-      _onItineraryUpdate: function (itinerary, passengerInfo) {
-          if (itinerary && passengerInfo) {
-              this.$.address.pullCountryList();          
+      _onItineraryUpdate: function (visible) {
+          if (this.itinerary && this.passengerInfo && visible) {
+              this.$.address.pullCountryList();
+              this.$.itineraryDetails.setDetails();
           }
       },
 
@@ -151,9 +167,36 @@
 
               for (var i = 0; i < this.passengerInfo.passengerList.length; i++) {
                   request.inventoriesInfo[0].passengerIds.push(i);
+                  this.passengerInfo.passengerList[i].gender = this.passengerInfo.passengerList[i].genderString;
+                  delete this.passengerInfo.passengerList[i]['genderString'];
                   this.passengerInfo.passengerList[i].emailAddress = this.passengerInfo.email;
                   this.passengerInfo.passengerList[i].phoneNumber = this.passengerInfo.phone;
-                  request.passengers.push(this.passengerInfo.passengerList[i]);
+                  this.passengerInfo.passengerList[i].id= i;
+                  request.passengers.push({
+                      "firstName": "Manoj",
+                      "middleName": "",
+                      "lastName": "Chalode",
+                      "suffix": "",
+                      "title": "Mr",
+                      "phoneNumber": "9730266287",
+                      "name": {
+                          "firstName": "Manoj",
+                          "middleName": "",
+                          "lastName": "Chalode",
+                          "suffix": "",
+                          "title": "Mr"
+                      },
+                      "dateOfBirth": {
+                          "date": "Fri, 28 Jun, 1991",
+                          "time": "7:13 PM"
+                      },
+                      "emailAddress": "mchalode@tavisca.com",
+                      "id": 0,
+                      "type": "adult",
+                      "gender": "Male",
+                      "memberships": [],
+                      "passportInfo": null
+                  });
               }
           }        
       },
@@ -173,6 +216,7 @@
           }
 
           var payment = this._getCreditCardInfo();
+          payment.id = 0;
 
           request.payments.push(payment);
       },
