@@ -67,19 +67,6 @@
 </dom-module>
 <script>
 (function() {
-    
-    var request = {
-      inventoriesInfo: [{
-          id: 0,
-          passengerIds: [],
-          paymentIds: [],
-          leadPassengerId: 0,
-          paymentBreakups: []
-      }],
-      passengers: [],
-      payments: [],
-      insuranceInfo: []
-    };
 
     Polymer({
         is: 't-car-book-api',
@@ -94,6 +81,24 @@
             'ajaxCall.error': '_errorCallback'
         },
 
+        properties: {            
+            request : {
+                type: Object,
+                value: {
+                    inventoriesInfo: [{
+                        id: 0,
+                        passengerIds: [],
+                        paymentIds: [],
+                        leadPassengerId: 0,
+                        paymentBreakups: []
+                    }],
+                    passengers: [],
+                    payments: [],
+                    insuranceInfo: []
+                }
+            }
+        },
+
         /*
          * <p>Method to book cars</p>
          */
@@ -105,7 +110,8 @@
 
             if (this._validateApiMeta()) {                
                 this.$.ajaxCall.url = this._getUrl();
-                this.$.ajaxCall.body = JSON.stringify(this._buildBookingRequest(data));
+                this._buildBookingRequest(data)
+                this.$.ajaxCall.body = JSON.stringify(this.request);
                 this.$.ajaxCall.generateRequest();
             }
         },
@@ -117,8 +123,6 @@
             this._getPaymentInfo(data.payment, data.itinerary.isPostPaid);
 
             this._getPaymentBreakup(data.itinerary.fare.components);
-
-            return request;
         },
 
         _getPassengers: function (passengerInfo) {
@@ -128,22 +132,25 @@
             }
 
             for (var i = 0; i < passengerInfo.passengerList.length; i++) {
-                request.inventoriesInfo[0].passengerIds.push(i);
-                passengerInfo.passengerList[i].gender = passengerInfo.passengerList[i].genderString;
-                delete passengerInfo.passengerList[i]['genderString'];
+                this.request.inventoriesInfo[0].passengerIds.push(i);
+
+                passengerInfo.passengerList[i].gender = passengerInfo.passengerList[i].genderString;                
                 passengerInfo.passengerList[i].emailAddress = passengerInfo.email;
                 passengerInfo.passengerList[i].phoneNumber = passengerInfo.phone;
                 passengerInfo.passengerList[i].id= i;
-                request.passengers.push(passengerInfo.passengerList[i]);
+
+                delete passengerInfo.passengerList[i]['genderString'];
+
+                this.request.passengers.push(passengerInfo.passengerList[i]);
             }      
         },
 
         _getPaymentInfo: function (payment, isPostPaid) {
 
-            request.inventoriesInfo[0].paymentIds.push(0);
+            this.request.inventoriesInfo[0].paymentIds.push(0);
 
             if (isPostPaid) {
-              request.payments.push([
+              this.request.payments.push([
                   //post paid payment request here
               ]);
               return;
@@ -151,7 +158,7 @@
 
             payment.id = 0;
 
-            request.payments.push(payment);
+            this.request.payments.push(payment);
         },
 
         _getPaymentBreakup: function (components) {
@@ -160,7 +167,7 @@
                 });
 
           if (totalFare) {
-              request.inventoriesInfo[0].paymentBreakups.push({
+              this.request.inventoriesInfo[0].paymentBreakups.push({
                   "amount": totalFare.money,
                   "paymentId": 0,
                   "paymentType": "creditCard",
