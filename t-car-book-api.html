@@ -150,15 +150,15 @@
             this.request.inventoriesInfo[0].paymentIds.push(0);
 
             if (isPostPaid) {
-              this.request.payments.push([
-                  //post paid payment request here
-              ]);
-              return;
+                this.request.payments.push({
+                    type: "PostPaid",
+                    id: 0
+                });
+            } else{                    
+                this.request.payments.push(payment);
+                payment.id = 0;
             }
 
-            payment.id = 0;
-
-            this.request.payments.push(payment);
         },
 
         _getPaymentBreakup: function (components) {

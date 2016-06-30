@@ -6,7 +6,9 @@
 <link rel="import" href="../t-button/t-button.html">
 <link rel="import" href="../t-section-header/t-section-header.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" />
-<link rel="import" href="t-car-book-api.html" />
+<link rel="import" href="t-car-book-api.html"/>
+<link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
+<link rel="import" href="../t-text-container/travel-element-styles.html">
 
 <dom-module id="t-payment-page">
   <template>
@@ -17,6 +19,8 @@
       }
     </style>
 
+    <content select="t-header"></content>
+
     <t-notify id="notify"></t-notify>
     
     <t-car-itinerary-details
@@ -26,19 +30,28 @@
         search-criteria=[[searchCriteria]]>
     </t-car-itinerary-details>
 
-    <t-section-header 
-        id="paymentHeader" 
+    <t-section-header
+        id="paymentHeader"
+        hidden$="[[itinerary.isPostPaid]]"
         label="Payment Information">              
     </t-section-header>
 
+    <t-section-header
+        id="paymentHeader"
+        hidden$="[[!itinerary.isPostPaid]]"
+        label="Confirm Your Booking">              
+    </t-section-header>
+
     <t-creditcard 
-        id="creditCard">
+        id="creditCard"
+        hidden$="[[itinerary.isPostPaid]]">
     </t-creditcard>
 
     <t-address 
         id="address"
         country-api="[[apiBaseUrl]]api/content/countries"
         base-geo-api="[[apiBaseUrl]]api/content"
+        hidden$="[[itinerary.isPostPaid]]"
         query-params="?token=[[authToken]]">
     </t-address>
 
@@ -68,6 +81,14 @@
         on-t-car-book-api-success="onBookSuccess"
         on-t-car-book-api-error="onBookError">
     </t-car-book-api>
+
+    <t-sessionstorage
+        id="sessionStore"
+        key="Car_Booked_Itinerary"
+        api-url-format="{{apiUrlFormat}}"
+        on-t-sessionstorage-save-success="onSessionSave"
+        on-t-sessionstorage-load-success="onSessionLoad">
+    </t-sessionstorage>
 
   </template>
 
@@ -137,7 +158,10 @@
 
       validate: function () {
           if (this.$.submit.disabled) {
-            return;
+            return false;
+          }
+          if (this.itinerary.isPostPaid) {
+            return true;
           }
           var isValid = true;
           isValid = this.$.address.validate() && isValid;
@@ -145,15 +169,28 @@
       },
 
       onBookSuccess: function (e) {
-          console.log(e.detail);
+          
+          if (!e.detail) {
+            return;
+          }
+
+          this.$.sessionStore.value = e.detail;
+          this.$.sessionStore.save();
       },
 
       onBookError: function (e) {
-          console.log(e.detail);        
+          this.$.notify.active = true;
+          this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+          this.fire('book-error');
+      },
+
+      onSessionSave: function () {
+          this.fire('book-success', this.$.sessionStore.value);
       },
 
       _onItineraryUpdate: function (visible) {
           if (this.itinerary && this.passengerInfo && visible) {
+              this.$.notify.active = false;
               this.$.address.pullCountryList();
               this.$.itineraryDetails.setDetails();
           }
