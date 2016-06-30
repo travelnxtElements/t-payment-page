@@ -1,0 +1,189 @@
+<link rel="import" href="../polymer/polymer.html" />
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../t-shared-lib/t-provider-behavior.html">
+<!--
+    <h3>Details:</h3>
+
+        `t-car-book-api` is a car book api component integrated with mystique apis.
+
+        It fires mystique book call and returns `bookId` upon successful opearion
+
+    <h3>Object Structure:</h3>
+
+        1. This component uses following request format to book cars -
+
+            var request = {
+                "productType": "car",
+                "pickupLocation": {
+                    "name": "McCarran International Airport",
+                    "geoCode": "36.0854,-115.15",
+                    "type": "Airport",
+                    "code": "LAS",
+                    "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
+                },
+                "pickupDate": {
+                    "date": "06/23/2016",
+                    "time": "11 AM"
+                },
+                "dropoffDate": {
+                    "date": "06/25/2016",
+                    "time": "12 AM"
+                },
+                "dropoffLocation": {
+                    "name": "McCarran International Airport",
+                    "geoCode": "36.0854,-115.15",
+                    "type": "Airport",
+                    "code": "LAS",
+                    "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
+                }
+            };
+
+    <h3>Events:</h3>
+
+        following events are fired by this component
+
+            1. 't-car-book-api-success' - fired upon successful book call
+            2. 't-car-book-api-error' - fired if book call is failed
+
+    <h3>Example:</h3>
+
+        <t-car-book-api 
+            id="bookApi" 
+            loading={{loading}} 
+            api-base-url="{{apiBaseUrl}}" 
+            api-relative-url="api/Car/book" 
+            auth-token="{{authToken}}"
+            on-t-car-book-api-success="onbookSuccess"
+            on-t-car-book-api-error="onbookError">
+        </t-car-book-api>
+
+    @demo demo/index.html
+-->
+<dom-module id="t-car-book-api">
+    <template>
+        <iron-ajax id="ajaxCall" method="POST" content-type="application/json" handle-as="json" verbose>
+        </iron-ajax>
+    </template>
+</dom-module>
+<script>
+(function() {
+    
+    var request = {
+      inventoriesInfo: [{
+          id: 0,
+          passengerIds: [],
+          paymentIds: [],
+          leadPassengerId: 0,
+          paymentBreakups: []
+      }],
+      passengers: [],
+      payments: [],
+      insuranceInfo: []
+    };
+
+    Polymer({
+        is: 't-car-book-api',
+
+        /*
+         * <p>Behaviour to validate ajax parameters and handle error codes.</p>
+         */
+        behaviors: [TravelNxt.Behaviors.ProviderBehavior],
+
+        listeners: {
+            'ajaxCall.response': '_successCallback',
+            'ajaxCall.error': '_errorCallback'
+        },
+
+        /*
+         * <p>Method to book cars</p>
+         */
+        book: function(data) {
+
+            if (!data) {
+                throw Error("book request is mandetory");
+            }
+
+            if (this._validateApiMeta()) {                
+                this.$.ajaxCall.url = this._getUrl();
+                this.$.ajaxCall.body = JSON.stringify(this._buildBookingRequest(data));
+                this.$.ajaxCall.generateRequest();
+            }
+        },
+
+        _buildBookingRequest: function(data) {
+
+            this._getPassengers(data.passengerInfo);
+
+            this._getPaymentInfo(data.payment, data.itinerary.isPostPaid);
+
+            this._getPaymentBreakup(data.itinerary.fare.components);
+
+            return request;
+        },
+
+        _getPassengers: function (passengerInfo) {
+
+            if (!passengerInfo || !passengerInfo.passengerList) {
+                return;    
+            }
+
+            for (var i = 0; i < passengerInfo.passengerList.length; i++) {
+                request.inventoriesInfo[0].passengerIds.push(i);
+                passengerInfo.passengerList[i].gender = passengerInfo.passengerList[i].genderString;
+                delete passengerInfo.passengerList[i]['genderString'];
+                passengerInfo.passengerList[i].emailAddress = passengerInfo.email;
+                passengerInfo.passengerList[i].phoneNumber = passengerInfo.phone;
+                passengerInfo.passengerList[i].id= i;
+                request.passengers.push(passengerInfo.passengerList[i]);
+            }      
+        },
+
+        _getPaymentInfo: function (payment, isPostPaid) {
+
+            request.inventoriesInfo[0].paymentIds.push(0);
+
+            if (isPostPaid) {
+              request.payments.push([
+                  //post paid payment request here
+              ]);
+              return;
+            }
+
+            payment.id = 0;
+
+            request.payments.push(payment);
+        },
+
+        _getPaymentBreakup: function (components) {
+          var totalFare = components.find(function (component, index, array) {
+                    return component.type.toLowerCase() == 'totalfare';
+                });
+
+          if (totalFare) {
+              request.inventoriesInfo[0].paymentBreakups.push({
+                  "amount": totalFare.money,
+                  "paymentId": 0,
+                  "paymentType": "creditCard",
+                  "passengerId": null
+              });
+          }
+        },
+
+        /*
+         * <p>Success callback</p>
+         */
+        _successCallback: function(event) {
+            this._successHandler(event);
+        },
+
+
+        /*
+         * <p>error callback</p>
+         */
+        _errorCallback: function(event) {
+            this._errorHandler(event);
+        }
+
+    });
+})();
+</script>

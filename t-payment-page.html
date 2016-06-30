@@ -5,8 +5,8 @@
 <link rel="import" href="../t-checkbox/t-checkbox.html">
 <link rel="import" href="../t-button/t-button.html">
 <link rel="import" href="../t-section-header/t-section-header.html">
-<link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" />
+<link rel="import" href="t-car-book-api.html" />
 
 <dom-module id="t-payment-page">
   <template>
@@ -59,7 +59,16 @@
         </t-button>
     </div>
 
-    <iron-ajax id="paymentAjax" method="POST" content-type="application/json" verbose></iron-ajax>
+    <t-car-book-api
+        id="bookApi" 
+        loading={{loading}} 
+        api-base-url="{{apiBaseUrl}}" 
+        api-relative-url="api/ShoppingCart/book" 
+        auth-token="{{authToken}}"
+        on-t-car-book-api-success="onBookSuccess"
+        on-t-car-book-api-error="onBookError">
+    </t-car-book-api>
+
   </template>
 
   <script>
@@ -119,6 +128,30 @@
           }
       },
 
+      bookNow: function () {
+          if (this.validate()) {
+            var data = this._getBookingData();
+            this.$.bookApi.book(data);
+          }
+      },
+
+      validate: function () {
+          if (this.$.submit.disabled) {
+            return;
+          }
+          var isValid = true;
+          isValid = this.$.address.validate() && isValid;
+          return this.$.creditCard.validate() && isValid;
+      },
+
+      onBookSuccess: function (e) {
+          console.log(e.detail);
+      },
+
+      onBookError: function (e) {
+          console.log(e.detail);        
+      },
+
       _onItineraryUpdate: function (visible) {
           if (this.itinerary && this.passengerInfo && visible) {
               this.$.address.pullCountryList();
@@ -126,128 +159,21 @@
           }
       },
 
-      bookNow: function () {
-          if (this.validate()) {
-              var bookingInfo = this._buildBookingRequest(payment);
-              console.log(bookingInfo);
+      _getBookingData: function () {
 
-              var paymentAjax = document.querySelector('#paymentAjax');
-              paymentAjax.url = this.apiBaseUrl + 'api/ShoppingCart/book?token=' + this.authToken;
-              paymentAjax.body = JSON.stringify(bookingInfo);
-              paymentAjax.generateRequest();
-          }
-      },
-
-      _buildBookingRequest: function() {
-          var request = {
-              inventoriesInfo: [{
-                  id: 0,
-                  passengerIds: [],
-                  paymentIds: [],
-                  leadPassengerId: 0,
-                  paymentBreakups: []
-              }],
-              passengers: [],
-              payments: [],
-              insuranceInfo: []
-          };
-
-          this._getPassengers(request);
-
-          this._getPaymentInfo(request);
-
-          this._getPaymentBreakup(request);
-
-          return request;
-      },
-
-      _getPassengers: function (request) {
-
-          if (this.passengerInfo && this.passengerInfo.passengerList) {
-
-              for (var i = 0; i < this.passengerInfo.passengerList.length; i++) {
-                  request.inventoriesInfo[0].passengerIds.push(i);
-                  this.passengerInfo.passengerList[i].gender = this.passengerInfo.passengerList[i].genderString;
-                  delete this.passengerInfo.passengerList[i]['genderString'];
-                  this.passengerInfo.passengerList[i].emailAddress = this.passengerInfo.email;
-                  this.passengerInfo.passengerList[i].phoneNumber = this.passengerInfo.phone;
-                  this.passengerInfo.passengerList[i].id= i;
-                  request.passengers.push({
-                      "firstName": "Manoj",
-                      "middleName": "",
-                      "lastName": "Chalode",
-                      "suffix": "",
-                      "title": "Mr",
-                      "phoneNumber": "9730266287",
-                      "name": {
-                          "firstName": "Manoj",
-                          "middleName": "",
-                          "lastName": "Chalode",
-                          "suffix": "",
-                          "title": "Mr"
-                      },
-                      "dateOfBirth": {
-                          "date": "Fri, 28 Jun, 1991",
-                          "time": "7:13 PM"
-                      },
-                      "emailAddress": "mchalode@tavisca.com",
-                      "id": 0,
-                      "type": "adult",
-                      "gender": "Male",
-                      "memberships": [],
-                      "passportInfo": null
-                  });
-              }
+          return {
+              itinerary: this.itinerary,
+              passengerInfo: this.passengerInfo,
+              payment: this._getCreditCardInfo()
           }        
       },
 
-      _getPaymentInfo: function (request) {
-
-          request.inventoriesInfo[0].paymentIds.push(0);
-
-          //to be removed..
-          this.itinerary.isPostPaid = false;
-
-          if (this.itinerary.isPostPaid) {
-              request.payments.push([
-                  //post paid payment request here
-              ]);
-              return;
-          }
-
-          var payment = this._getCreditCardInfo();
-          payment.id = 0;
-
-          request.payments.push(payment);
-      },
-
       _getCreditCardInfo: function () {
-          var address = this.$.address.getAddress();
-          var payment = this.$.creditCard.getInfo();
-          payment.billingAddress = address;
+        var address = this.$.address.getAddress();
+        var payment = this.$.creditCard.getInfo();
+        payment.billingAddress = address;
 
-          return payment;
-      },
-
-      _getPaymentBreakup: function (request) {
-          var totalFare = this.itinerary.fare.components.find(function (component, index, array) {
-                    return component.type.toLowerCase() == 'totalfare';
-                });
-
-          if (totalFare) {
-              request.inventoriesInfo[0].paymentBreakups.push({
-                  "amount": totalFare.money,
-                  "paymentId": 0,
-                  "paymentType": "creditCard",
-                  "passengerId": null
-              });
-          }
-      },
-
-      validate: function () {
-          var isValid = true;
-          isValid = this.$.address.validate() && isValid;
-          return this.$.creditCard.validate() && isValid;
+        return payment;
       }
 
     });
