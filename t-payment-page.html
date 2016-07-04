@@ -9,6 +9,7 @@
 <link rel="import" href="t-car-book-api.html"/>
 <link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
 <link rel="import" href="../t-text-container/travel-element-styles.html">
+<link rel="import" href="../t-shared-lib/t-date-behavior.html">
 
 <dom-module id="t-payment-page">
     <template>
@@ -34,6 +35,10 @@
             itinerary="[[itinerary]]"
             search-criteria=[[searchCriteria]]>
         </t-car-itinerary-details>
+        <t-faredetails 
+          id="fareDetails"
+          is-collapsible
+          itinerary-fare-label="Car Rental"></t-faredetails>
 
         <t-section-header
             id="paymentHeader"
@@ -102,6 +107,10 @@
 
         observers:[
             '_onItineraryUpdate(visible)'
+        ],
+
+        behaviors: [
+            TravelNxt.Behaviors.DateBehavior
         ],
 
         properties: {
@@ -196,6 +205,7 @@
                 this.$.notify.active = false;
                 this.$.address.pullCountryList();
                 this.$.itineraryDetails.setDetails();
+                this._setFareDetails();
             }
         },
 
@@ -232,6 +242,24 @@
                 searchCriteria: bookedItinerary.inventoriesInfo[0].searchCriteria,
                 passengers: bookedItinerary.passengers
             };
+        },
+
+        _setFareDetails: function () {
+            if (!this.itinerary || !this.searchCriteria) {
+                return;
+            }
+
+            var formattedDate = this._getDateComponents(this.searchCriteria.pickupDate);
+            this.pickupDate = formattedDate.date + ' ' + formattedDate.shortMonth + ' ' + this.searchCriteria.pickupTime;
+
+            formattedDate = this._getDateComponents(this.searchCriteria.dropoffDate);
+            this.dropoffDate = formattedDate.date + ' ' + formattedDate.shortMonth + ' ' + this.searchCriteria.dropoffTime;
+
+            this.$.fareDetails.baseFareLabel = 'Avg. per day rate x ' + this._dateDiff(this.pickupDate, this.dropoffDate);
+
+            if (this.itinerary.fare && this.itinerary.fare.components) {
+                this.$.fareDetails.data = this.itinerary.fare.components;
+            }
         }
 
       });
