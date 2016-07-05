@@ -13,11 +13,16 @@
 
 <dom-module id="t-payment-page">
     <template>
-        <style include="iron-flex-layout-classes"></style>
+        <style include="iron-flex"></style>
         <style include="travel-element-styles">
           :host, t-button {
             display: block;
+            font-family: var(--header-font-family, --primary-font-family);
+            font-size: var(--font-14, 14px);
           }
+        .payable {
+            font-size: var(--font-18, 18px);
+        }
         </style>
 
         <content select="t-header"></content>
@@ -35,10 +40,20 @@
             itinerary="[[itinerary]]"
             search-criteria=[[searchCriteria]]>
         </t-car-itinerary-details>
+
         <t-faredetails 
           id="fareDetails"
           is-collapsible
-          itinerary-fare-label="Car Rental"></t-faredetails>
+          itinerary-fare-label="Car Rental">
+        </t-faredetails>
+
+        <template is="dom-if" if="[[itinerary.isPostPaid]]">
+            <div class="layout horizontal section-small payable">
+                <span class="secondary-text">Due at pick-up</span>
+                <span class="flex"></span>
+                <span>{{_getPayableAmount()}}</span>
+            </div>
+        </template>
 
         <t-section-header
             id="paymentHeader"
@@ -209,7 +224,7 @@
             if (itinerary && passengerInfo && visible) {
                 this.$.notify.active = false;
                 this.$.address.pullCountryList();
-                this.$.itineraryDetails.setDetails();
+                this.$.itineraryDetails.setDetails(itinerary);
                 this._setFareDetails();
             }
         },
@@ -247,6 +262,22 @@
                 searchCriteria: bookedItinerary.inventoriesInfo[0].searchCriteria,
                 passengers: bookedItinerary.passengers
             };
+        },
+
+        _getPayableAmount: function () {
+            if (!this.itinerary || !this.itinerary.fare) {
+                return '';
+            }
+
+            var totalFare = this.itinerary.fare.components.find(function(item){
+                return item.type.toLowerCase() === 'totalfare';
+            });
+
+            if (!totalFare) {
+                return '';
+            }
+
+            return totalFare.money.currency + ' ' + totalFare.money.amount;
         },
 
         _setFareDetails: function () {
