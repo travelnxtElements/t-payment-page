@@ -106,7 +106,11 @@
         is: 't-payment-page',
 
         observers:[
-            '_onItineraryUpdate(visible)'
+            '_onItineraryUpdate(visible, itinerary, passengerInfo)'
+        ],
+
+        behaviors: [
+            TravelNxt.Behaviors.DateBehavior
         ],
 
         behaviors: [
@@ -162,6 +166,7 @@
         },
 
         bookNow: function () {
+            this.$.notify.active = false;
             if (this.validate()) {
               var data = this._getBookingData();
               this.$.bookApi.book(data);
@@ -200,8 +205,8 @@
             this.fire('book-success', this.$.sessionStore.value);
         },
 
-        _onItineraryUpdate: function (visible) {
-            if (this.itinerary && this.passengerInfo && visible) {
+        _onItineraryUpdate: function (visible, itinerary, passengerInfo) {
+            if (itinerary && passengerInfo && visible) {
                 this.$.notify.active = false;
                 this.$.address.pullCountryList();
                 this.$.itineraryDetails.setDetails();
