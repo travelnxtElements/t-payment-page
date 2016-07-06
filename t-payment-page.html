@@ -10,6 +10,7 @@
 <link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
 <link rel="import" href="../t-text-container/travel-element-styles.html">
 <link rel="import" href="../t-shared-lib/t-date-behavior.html">
+<link rel="import" href="../t-loader/t-fullpage-loader.html">
 
 <dom-module id="t-payment-page">
     <template>
@@ -71,6 +72,17 @@
             id="creditCard"
             hidden$="[[itinerary.isPostPaid]]">
         </t-creditcard>
+
+        <template is="dom-if" if="[[_showFullPageLoader]]">
+            <t-fullpage-loader active>
+                <div hidden="[[_processingMsg]]">
+                    Please do not refresh the page, we are confirming your booking...
+                </div> 
+                <div hidden="[[_longProcessingMsg]]">
+                    Please wait, this is taking longer than expected...
+                </div>     
+            </t-fullpage-loader>
+        </template>
 
         <t-address 
             id="address"
@@ -168,6 +180,30 @@
             /*
              * <p>This property holds the value of web api URL format</p>
             */
+            _processingMsg: {
+                type: Boolean,
+                value: false
+            },
+
+            /*
+             * <p>This property holds the value of web api URL format</p>
+            */
+            _longProcessingMsg: {
+                type: Boolean,
+                value: true
+            },
+
+            /*
+             * <p>This property holds the value of web api URL format</p>
+            */
+            _showFullPageLoader: {
+                type: Boolean,
+                value: false
+            },
+
+            /*
+             * <p>This property holds the value of web api URL format</p>
+            */
             itinerary: {
                 type: Object
             },
@@ -182,10 +218,15 @@
         },
 
         bookNow: function () {
+
+            this._bindTimer();
+
             this.$.notify.active = false;
+
             if (this.validate()) {
-              var data = this._getBookingData();
-              this.$.bookApi.book(data);
+                this._showFullPageLoader = true;
+                var data = this._getBookingData();
+                this.$.bookApi.book(data);
             }
         },
 
@@ -202,6 +243,7 @@
         },
 
         _onBookSuccess: function (e) {
+            this._showFullPageLoader = false;
             
             if (!e.detail) {
               return;
@@ -212,6 +254,7 @@
         },
 
         _onBookError: function (e) {
+            this._showFullPageLoader = false;
             this.$.notify.active = true;
             this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
             this.fire('book-error');
@@ -226,6 +269,7 @@
                 return;
             }
 
+            this.$.acceptance.checked = false;
             this.$.notify.active = false;
             this.$.address.pullCountryList();
             this.$.itineraryDetails.setDetails(itinerary, searchCriteria);
@@ -299,8 +343,15 @@
             if (this.itinerary.fare && this.itinerary.fare.components) {
                 this.$.fareDetails.data = this.itinerary.fare.components;
             }
-        }
+        },
 
+        _bindTimer: function () {
+
+            _timer = setTimeout(function () {
+                this._processingMsg = true;
+                this._longProcessingMsg = false;
+            }.bind(this), parseInt(Eva.paymentProcessingInterval));
+        }
       });
     </script>
 </dom-module>
