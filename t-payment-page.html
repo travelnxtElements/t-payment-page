@@ -121,7 +121,7 @@
         is: 't-payment-page',
 
         observers:[
-            '_onItineraryUpdate(visible, itinerary, passengerInfo)'
+            '_onItineraryUpdate(visible, itinerary, passengerInfo, searchCriteria)'
         ],
 
         behaviors: [
@@ -220,13 +220,15 @@
             this.fire('book-success', this.$.sessionStore.value);
         },
 
-        _onItineraryUpdate: function (visible, itinerary, passengerInfo) {
-            if (itinerary && passengerInfo && visible) {
-                this.$.notify.active = false;
-                this.$.address.pullCountryList();
-                this.$.itineraryDetails.setDetails(itinerary);
-                this._setFareDetails();
+        _onItineraryUpdate: function (visible, itinerary, passengerInfo, searchCriteria) {
+            if (!itinerary || !passengerInfo || !searchCriteria || !visible) {
+                return;
             }
+
+            this.$.notify.active = false;
+            this.$.address.pullCountryList();
+            this.$.itineraryDetails.setDetails(itinerary, searchCriteria);
+            this._setFareDetails();
         },
 
         _getBookingData: function () {
