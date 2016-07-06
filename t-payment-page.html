@@ -32,6 +32,7 @@
 
         <t-section-header
             id="paymentHeader"
+            class="margin-bottom"
             label="Trip Summary">              
         </t-section-header>
         
@@ -54,24 +55,12 @@
                 <span class="flex"></span>
                 <span>{{_getPayableAmount()}}</span>
             </div>
+            <t-section-header
+                class="margin-bottom"
+                id="paymentHeader"
+                label="Confirm Your Booking">              
+            </t-section-header>
         </template>
-
-        <t-section-header
-            id="paymentHeader"
-            hidden$="[[itinerary.isPostPaid]]"
-            label="Payment Information">              
-        </t-section-header>
-
-        <t-section-header
-            id="paymentHeader"
-            hidden$="[[!itinerary.isPostPaid]]"
-            label="Confirm Your Booking">              
-        </t-section-header>
-
-        <t-creditcard 
-            id="creditCard"
-            hidden$="[[itinerary.isPostPaid]]">
-        </t-creditcard>
 
         <template is="dom-if" if="[[_showFullPageLoader]]">
             <t-fullpage-loader active>
@@ -84,14 +73,25 @@
             </t-fullpage-loader>
         </template>
 
-        <t-address 
-            id="address"
-            prevent-auto-populate
-            country-api="[[apiBaseUrl]]api/content/countries"
-            base-geo-api="[[apiBaseUrl]]api/content"
-            hidden$="[[itinerary.isPostPaid]]"
-            query-params="?token=[[authToken]]">
-        </t-address>
+        <template is="dom-if" if="[[!itinerary.isPostPaid]]">
+            <t-section-header
+                class="margin-bottom"
+                id="paymentHeader"
+                label="Payment Information">              
+            </t-section-header>
+
+            <t-creditcard 
+                id="creditCard">
+            </t-creditcard>
+
+            <t-address 
+                id="address"
+                prevent-auto-populate
+                country-api="[[apiBaseUrl]]api/content/countries"
+                base-geo-api="[[apiBaseUrl]]api/content"
+                query-params="?token=[[authToken]]">
+            </t-address>
+        </template>
 
         <div class="layout horizontal start section-small">
             <t-checkbox id="acceptance" checked="{{checked}}"><div hidden>something</div></t-checkbox>
@@ -238,8 +238,8 @@
               return true;
             }
             var isValid = true;
-            isValid = this.$.address.validate() && isValid;
-            return this.$.creditCard.validate() && isValid;
+            isValid = this.$$('#address').validate() && isValid;
+            return this.$$('#creditCard').validate() && isValid;
         },
 
         _onBookSuccess: function (e) {
@@ -271,7 +271,9 @@
 
             this.$.acceptance.checked = false;
             this.$.notify.active = false;
-            this.$.address.pullCountryList();
+            if(!this.itinerary.isPostPaid){
+                this.$$('#address').pullCountryList();
+            }
             this.$.itineraryDetails.setDetails(itinerary, searchCriteria);
             this._setFareDetails();
         },
@@ -286,8 +288,8 @@
         },
 
         _getCreditCardInfo: function () {
-          var address = this.$.address.getAddress();
-          var payment = this.$.creditCard.getInfo();
+          var address = this.$$('#address').getAddress();
+          var payment = this.$$('#creditCard').getInfo();
           payment.billingAddress = address;
 
           return payment;
