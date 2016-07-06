@@ -283,7 +283,7 @@
             return {
                 itinerary: this.itinerary,
                 passengerInfo: this.passengerInfo,
-                payment: this._getCreditCardInfo()
+                payment: this.itinerary.isPostPaid ? null : this._getCreditCardInfo()
             }        
         },
 
