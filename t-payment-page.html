@@ -16,14 +16,16 @@
     <template>
         <style include="iron-flex"></style>
         <style include="travel-element-styles">
-          :host, t-button {
-            display: block;
-            font-family: var(--header-font-family, --primary-font-family);
-            font-size: var(--font-14, 14px);
-          }
-        .payable {
-            font-size: var(--font-18, 18px);
-        }
+            :host {
+                font-family: var(--header-font-family, --primary-font-family);
+                font-size: var(--font-14, 14px);
+            }
+            :host, t-button {
+                display: block;                
+            }
+            .payable {
+                font-size: var(--font-18, 18px);
+            }
         </style>
 
         <content select="t-header"></content>
@@ -129,255 +131,270 @@
     </template>
 
     <script>
-      Polymer({
 
-        is: 't-payment-page',
+        (function () {
 
-        observers:[
-            '_onItineraryUpdate(visible, itinerary, passengerInfo, searchCriteria)'
-        ],
+            'use strict'
 
-        behaviors: [
-            TravelNxt.Behaviors.DateBehavior
-        ],
+            Polymer({
 
-        properties: {
+                is: 't-payment-page',
 
-            visible: {
-              type: Boolean,
-              value: false,
-              notify: true
-            },
+                behaviors: [
+                    TravelNxt.Behaviors.DateBehavior
+                ],
 
-            /*
-             * <p>This string is query string containing token value</p>
-            */
-            authToken: {
-                type: String,
-                value: ''
-            },
+                properties: {
 
-            /*
-             * <p>This property holds the value of api base URL</p>
-            */
-            apiBaseUrl: {
-                type: String,
-                value: ''
-            },
+                    visible: {
+                      type: Boolean,
+                      value: false,
+                      notify: true
+                    },
 
-            /*
-             * <p>This property holds the value of web api URL format</p>
-            */
-            apiUrlFormat: {
-                type: String,
-                value: ''
-            },
+                    /*
+                     * <p>This string is query string containing token value</p>
+                    */
+                    authToken: {
+                        type: String,
+                        value: ''
+                    },
 
-            /*
-             * <p>This property holds the value of web api URL format</p>
-            */
-            _processingMsg: {
-                type: Boolean,
-                value: false
-            },
+                    /*
+                     * <p>This property holds the value of api base URL</p>
+                    */
+                    apiBaseUrl: {
+                        type: String,
+                        value: ''
+                    },
 
-            /*
-             * <p>This property holds the value of web api URL format</p>
-            */
-            _longProcessingMsg: {
-                type: Boolean,
-                value: true
-            },
+                    /*
+                     * <p>This property holds the value of web api URL format</p>
+                    */
+                    apiUrlFormat: {
+                        type: String,
+                        value: ''
+                    },
 
-            /*
-             * <p>This property holds the value of web api URL format</p>
-            */
-            _showFullPageLoader: {
-                type: Boolean,
-                value: false
-            },
+                    /*
+                     * <p>This property holds the value of web api URL format</p>
+                    */
+                    _processingMsg: {
+                        type: Boolean,
+                        value: false
+                    },
 
-            /*
-             * <p>This property holds the value of web api URL format</p>
-            */
-            _payableAmount: {
-                type: String
-            },
+                    /*
+                     * <p>This property holds the value of web api URL format</p>
+                    */
+                    _longProcessingMsg: {
+                        type: Boolean,
+                        value: true
+                    },
 
-            /*
-             * <p>This property holds the value of loader message timer value in miliseconds</p>
-            */
-            paymentTimer: {
-                type: String,
-                value: '10000'
-            },
+                    /*
+                     * <p>This property holds the value of web api URL format</p>
+                    */
+                    _showFullPageLoader: {
+                        type: Boolean,
+                        value: false
+                    },
 
-            /*
-             * <p>This property holds the value of web api URL format</p>
-            */
-            itinerary: {
-                type: Object
-            },
+                    /*
+                     * <p>This property holds the value of web api URL format</p>
+                    */
+                    _payableAmount: {
+                        type: String
+                    },
 
-            bookedItinerary: {
-                type: Object,
-                notify: true
-            },
+                    /*
+                     * <p>This property holds the value of loader message timer value in miliseconds</p>
+                    */
+                    paymentTimer: {
+                        type: String,
+                        value: '10000'
+                    },
 
-            passengerInfo: {
-                type: Object
-            },
+                    /*
+                     * <p>This property holds the value of web api URL format</p>
+                    */
+                    itinerary: {
+                        type: Object
+                    },
 
-            searchCriteria: {
-              type: Object
-            }
-        },
+                    bookedItinerary: {
+                        type: Object,
+                        notify: true
+                    },
 
-        bookNow: function () {
+                    passengerInfo: {
+                        type: Object
+                    },
 
-            this._bindTimer();
+                    searchCriteria: {
+                      type: Object
+                    }
+                },
 
-            this.$.notify.active = false;
+                observers:[                
+                    '_visibleChange(visible)'
+                ],
 
-            if (this.validate()) {
-                this._showFullPageLoader = true;
-                var data = this._getBookingData();
-                this.$.bookApi.book(data);
-            }
-        },
+                bookNow: function () {
 
-        validate: function () {
-            if (this.$.submit.disabled) {
-              return false;
-            }
-            if (this.itinerary.isPostPaid) {
-              return true;
-            }
-            var isValid = true;
-            isValid = this.$$('#address').validate() && isValid;
-            return this.$$('#creditCard').validate() && isValid;
-        },
+                    this._bindTimer();
 
-        _onBookSuccess: function (e) {
-            this._showFullPageLoader = false;
-            
-            if (!e.detail) {
-              return;
-            }
+                    this.$.notify.active = false;
 
-            this.$.sessionStore.value = this._translateItinerary(e.detail);
-            this.$.sessionStore.save();
-        },
+                    if (this.validate()) {
+                        this._showFullPageLoader = true;
+                        var data = this._getBookingData();
+                        this.$.bookApi.book(data);
+                    }
+                },
 
-        _onBookError: function (e) {
-            this._showFullPageLoader = false;
-            this.$.notify.active = true;
-            this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-            this.fire('book-error');
-        },
+                validate: function () {
+                    if (this.$.submit.disabled) {
+                      return false;
+                    }
+                    if (this.itinerary.isPostPaid) {
+                      return true;
+                    }
+                    var isValid = true;
+                    isValid = this.$$('#address').validate() && isValid;
+                    return this.$$('#creditCard').validate() && isValid;
+                },
 
-        _onSessionSave: function () {
-            this.bookedItinerary = this.$.sessionStore.value;
-            this.fire('book-success', this.$.sessionStore.value);
-        },
+                _visibleChange: function (visible) {
+                    if (!visible) {
+                        return;
+                    }
 
-        _onItineraryUpdate: function (visible, itinerary, passengerInfo, searchCriteria) {
-            if (!itinerary || !passengerInfo || !searchCriteria || !visible) {
-                return;
-            }
+                    if (!this.itinerary || !this.passengerInfo || !this.searchCriteria || !this.authToken){
+                        this.fire('go-to-search');
+                        return;
+                    }
 
-            this.$.acceptance.checked = false;
+                    this.$.notify.active = false;
 
-            if (!this.itinerary.isPostPaid) {
-                this.$$('#address').$.phoneNumber.value = passengerInfo.phone;
-            }
+                    this.$.acceptance.checked = false;
 
-            this._getPayableAmount();
-            this.$.notify.active = false;
-            if(!this.itinerary.isPostPaid){
-                this.$$('#address').pullCountryList();
-            }
-            this.$.itineraryDetails.setDetails(itinerary, searchCriteria);
-            this._setFareDetails();
-        },
+                    if (!this.itinerary.isPostPaid) {
+                        if (!this.$$('#creditCard').$.securityCode.value) {
+                            this.$$('#address').pullCountryList();
+                        }
+                        this.$$('#address').$.phoneNumber.value = this.passengerInfo.phone;
+                        this.$$('#creditCard').$.securityCode.value = '';
+                    }
 
-        _getBookingData: function () {
+                    this._getPayableAmount();
 
-            return {
-                itinerary: this.itinerary,
-                passengerInfo: this.passengerInfo,
-                payment: this.itinerary.isPostPaid ? null : this._getCreditCardInfo()
-            }        
-        },
+                    this.$.itineraryDetails.setDetails(this.itinerary, this.searchCriteria);
 
-        _getCreditCardInfo: function () {
-          var address = this.$$('#address').getAddress();
-          var payment = this.$$('#creditCard').getInfo();
-          payment.billingAddress = address;
+                    this._setFareDetails();
+                },
 
-          return payment;
-        },
+                _onBookSuccess: function (e) {
+                    this._showFullPageLoader = false;
+                    
+                    if (!e.detail) {
+                      return;
+                    }
 
-        _translateItinerary: function (bookedItinerary) {
+                    this.$.sessionStore.value = this._translateItinerary(e.detail);
+                    this.$.sessionStore.save();
+                },
 
-            bookedItinerary.inventoriesInfo[0].searchCriteria.pickupTime = bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate.time;
-            bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate = bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate.date;
+                _onBookError: function (e) {
+                    this._showFullPageLoader = false;
+                    this.$.notify.active = true;
+                    this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
+                    this.fire('book-error');
+                },
 
-            bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffTime = bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffDate.time;
-            bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffDate = bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffDate.date;
+                _onSessionSave: function () {
+                    this.bookedItinerary = this.$.sessionStore.value;
+                    this.fire('book-success', this.$.sessionStore.value);
+                },
 
-            return {                            
-                confirmationNumber: bookedItinerary.confirmationNumber,
-                bookingStatus: bookedItinerary.bookingStatus,
-                name: bookedItinerary.name,
-                itinerary: bookedItinerary.inventoriesInfo[0].inventory,
-                paymentBreakup: bookedItinerary.inventoriesInfo[0].paymentBreakups[0],
-                searchCriteria: bookedItinerary.inventoriesInfo[0].searchCriteria,
-                passengers: bookedItinerary.passengers
-            };
-        },
+                _getBookingData: function () {
 
-        _getPayableAmount: function () {
-            if (!this.itinerary || !this.itinerary.fare) {
-                return '';
-            }
+                    return {
+                        itinerary: this.itinerary,
+                        passengerInfo: this.passengerInfo,
+                        payment: this.itinerary.isPostPaid ? null : this._getCreditCardInfo()
+                    }        
+                },
 
-            var totalFare = this.itinerary.fare.components.find(function(item){
-                return item.type.toLowerCase() === 'totalfare';
+                _getCreditCardInfo: function () {
+                  var address = this.$$('#address').getAddress();
+                  var payment = this.$$('#creditCard').getInfo();
+                  payment.billingAddress = address;
+
+                  return payment;
+                },
+
+                _translateItinerary: function (bookedItinerary) {
+
+                    bookedItinerary.inventoriesInfo[0].searchCriteria.pickupTime = bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate.time;
+                    bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate = bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate.date;
+
+                    bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffTime = bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffDate.time;
+                    bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffDate = bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffDate.date;
+
+                    return {                            
+                        confirmationNumber: bookedItinerary.confirmationNumber,
+                        bookingStatus: bookedItinerary.bookingStatus,
+                        name: bookedItinerary.name,
+                        itinerary: bookedItinerary.inventoriesInfo[0].inventory,
+                        paymentBreakup: bookedItinerary.inventoriesInfo[0].paymentBreakups[0],
+                        searchCriteria: bookedItinerary.inventoriesInfo[0].searchCriteria,
+                        passengers: bookedItinerary.passengers
+                    };
+                },
+
+                _getPayableAmount: function () {
+                    if (!this.itinerary || !this.itinerary.fare) {
+                        return '';
+                    }
+
+                    var totalFare = this.itinerary.fare.components.find(function(item){
+                        return item.type.toLowerCase() === 'totalfare';
+                    });
+
+                    if (!totalFare) {
+                        return '';
+                    }
+
+                    this._payableAmount = totalFare.money.currency + ' ' + totalFare.money.amount;
+                },
+
+                _setFareDetails: function () {
+                    if (!this.itinerary || !this.searchCriteria) {
+                        return;
+                    }
+
+                    var formattedDate = this._getDateComponents(this.searchCriteria.pickupDate);
+                    this.pickupDate = formattedDate.date + ' ' + formattedDate.shortMonth + ' ' + this.searchCriteria.pickupTime;
+
+                    formattedDate = this._getDateComponents(this.searchCriteria.dropoffDate);
+                    this.dropoffDate = formattedDate.date + ' ' + formattedDate.shortMonth + ' ' + this.searchCriteria.dropoffTime;
+
+                    this.$.fareDetails.baseFareLabel = 'Avg. per day rate x ' + this._dateDiff(this.pickupDate, this.dropoffDate);
+
+                    if (this.itinerary.fare && this.itinerary.fare.components) {
+                        this.$.fareDetails.data = this.itinerary.fare.components;
+                    }
+                },
+
+                _bindTimer: function () {
+
+                    var _timer = setTimeout(function () {
+                        this._processingMsg = true;
+                        this._longProcessingMsg = false;
+                    }.bind(this), parseInt(this.paymentTimer));
+                }
             });
-
-            if (!totalFare) {
-                return '';
-            }
-
-            this._payableAmount = totalFare.money.currency + ' ' + totalFare.money.amount;
-        },
-
-        _setFareDetails: function () {
-            if (!this.itinerary || !this.searchCriteria) {
-                return;
-            }
-
-            var formattedDate = this._getDateComponents(this.searchCriteria.pickupDate);
-            this.pickupDate = formattedDate.date + ' ' + formattedDate.shortMonth + ' ' + this.searchCriteria.pickupTime;
-
-            formattedDate = this._getDateComponents(this.searchCriteria.dropoffDate);
-            this.dropoffDate = formattedDate.date + ' ' + formattedDate.shortMonth + ' ' + this.searchCriteria.dropoffTime;
-
-            this.$.fareDetails.baseFareLabel = 'Avg. per day rate x ' + this._dateDiff(this.pickupDate, this.dropoffDate);
-
-            if (this.itinerary.fare && this.itinerary.fare.components) {
-                this.$.fareDetails.data = this.itinerary.fare.components;
-            }
-        },
-
-        _bindTimer: function () {
-
-            _timer = setTimeout(function () {
-                this._processingMsg = true;
-                this._longProcessingMsg = false;
-            }.bind(this), parseInt(this.paymentTimer));
-        }
-      });
+        })();
     </script>
 </dom-module>
