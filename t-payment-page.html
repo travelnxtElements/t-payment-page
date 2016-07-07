@@ -53,7 +53,7 @@
             <div class="layout horizontal section-small payable">
                 <span class="secondary-text">Due at pick-up</span>
                 <span class="flex"></span>
-                <span>{{_getPayableAmount()}}</span>
+                <span>[[_payableAmount]]</span>
             </div>
             <t-section-header
                 class="margin-bottom"
@@ -141,10 +141,6 @@
             TravelNxt.Behaviors.DateBehavior
         ],
 
-        behaviors: [
-            TravelNxt.Behaviors.DateBehavior
-        ],
-
         properties: {
 
             visible: {
@@ -199,6 +195,21 @@
             _showFullPageLoader: {
                 type: Boolean,
                 value: false
+            },
+
+            /*
+             * <p>This property holds the value of web api URL format</p>
+            */
+            _payableAmount: {
+                type: String
+            },
+
+            /*
+             * <p>This property holds the value of loader message timer value in miliseconds</p>
+            */
+            paymentTimer: {
+                type: String,
+                value: '10000'
             },
 
             /*
@@ -270,6 +281,7 @@
             }
 
             this.$.acceptance.checked = false;
+            this._getPayableAmount();
             this.$.notify.active = false;
             if(!this.itinerary.isPostPaid){
                 this.$$('#address').pullCountryList();
@@ -326,7 +338,7 @@
                 return '';
             }
 
-            return totalFare.money.currency + ' ' + totalFare.money.amount;
+            this._payableAmount = totalFare.money.currency + ' ' + totalFare.money.amount;
         },
 
         _setFareDetails: function () {
@@ -352,7 +364,7 @@
             _timer = setTimeout(function () {
                 this._processingMsg = true;
                 this._longProcessingMsg = false;
-            }.bind(this), parseInt(Eva.paymentProcessingInterval));
+            }.bind(this), parseInt(this.paymentTimer));
         }
       });
     </script>
