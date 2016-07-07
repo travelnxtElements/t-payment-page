@@ -219,6 +219,11 @@
                 type: Object
             },
 
+            bookedItinerary: {
+                type: Object,
+                notify: true
+            },
+
             passengerInfo: {
                 type: Object
             },
@@ -272,6 +277,7 @@
         },
 
         _onSessionSave: function () {
+            this.bookedItinerary = this.$.sessionStore.value;
             this.fire('book-success', this.$.sessionStore.value);
         },
 
@@ -320,6 +326,7 @@
                 bookingStatus: bookedItinerary.bookingStatus,
                 name: bookedItinerary.name,
                 itinerary: bookedItinerary.inventoriesInfo[0].inventory,
+                paymentBreakup: bookedItinerary.inventoriesInfo[0].paymentBreakups[0],
                 searchCriteria: bookedItinerary.inventoriesInfo[0].searchCriteria,
                 passengers: bookedItinerary.passengers
             };
