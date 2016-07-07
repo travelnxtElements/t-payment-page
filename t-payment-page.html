@@ -287,6 +287,11 @@
             }
 
             this.$.acceptance.checked = false;
+
+            if (!this.itinerary.isPostPaid) {
+                this.$$('#address').$.phoneNumber.value = passengerInfo.phone;
+            }
+
             this._getPayableAmount();
             this.$.notify.active = false;
             if(!this.itinerary.isPostPaid){
