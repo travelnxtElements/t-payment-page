@@ -139,6 +139,13 @@
                 passengerInfo.passengerList[i].emailAddress = passengerInfo.email;
                 passengerInfo.passengerList[i].phoneNumber = passengerInfo.phone;
                 passengerInfo.passengerList[i].id= i;
+                
+                //temporary date specifying user's age apprx equal to 25 years.
+                passengerInfo.passengerList[i].dateOfBirth = { 
+                    date: "Tue, 04 Sep,1990",
+                    time: "12:46 PM"
+                }
+
 
                 delete passengerInfo.passengerList[i]['genderString'];
 
