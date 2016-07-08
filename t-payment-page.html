@@ -40,9 +40,7 @@
         
         <t-car-itinerary-details
             id="itineraryDetails"
-            is-collapsible
-            itinerary="[[itinerary]]"
-            search-criteria=[[searchCriteria]]>
+            is-collapsible>
         </t-car-itinerary-details>
 
         <t-faredetails 
@@ -75,7 +73,7 @@
             </t-fullpage-loader>
         </template>
 
-        <template is="dom-if" if="[[!itinerary.isPostPaid]]">
+        <template is="dom-if" if="[[!itinerary.isPostPaid]]" on-dom-change='_countryCall'>
             <t-section-header
                 class="margin-bottom"
                 id="paymentHeader"
@@ -115,9 +113,9 @@
         <t-car-book-api
             id="bookApi" 
             loading={{loading}} 
-            api-base-url="{{apiBaseUrl}}" 
+            api-base-url="[[apiBaseUrl]]" 
             api-relative-url="api/ShoppingCart/book" 
-            auth-token="{{authToken}}"
+            auth-token="[[authToken]]"
             on-t-car-book-api-success="_onBookSuccess"
             on-t-car-book-api-error="_onBookError">
         </t-car-book-api>
@@ -125,7 +123,7 @@
         <t-sessionstorage
             id="sessionStore"
             key="Car_Booked_Itinerary"
-            api-url-format="{{apiUrlFormat}}"
+            api-url-format="[[apiUrlFormat]]"
             on-t-sessionstorage-save-success="_onSessionSave">
         </t-sessionstorage>
     </template>
@@ -237,7 +235,8 @@
                 },
 
                 observers:[                
-                    '_visibleChange(visible)'
+                    '_visibleChange(visible)',
+                    '_paymentPageRedirect(authToken, passengerInfo)'
                 ],
 
                 bookNow: function () {
@@ -266,12 +265,14 @@
                 },
 
                 _visibleChange: function (visible) {
-                    if (!visible) {
-                        return;
-                    }
-
-                    if (!this.itinerary || !this.passengerInfo || !this.searchCriteria || !this.authToken){
+                    if (visible && (!this.itinerary || !this.passengerInfo || !this.searchCriteria || !this.authToken)) {
                         this.fire('go-to-search');
+                    }
+                },
+
+                _paymentPageRedirect: function (authToken, passengerInfo) {
+
+                    if (!this.itinerary || !passengerInfo || !this.searchCriteria || !authToken){
                         return;
                     }
 
@@ -279,19 +280,20 @@
 
                     this.$.acceptance.checked = false;
 
-                    if (!this.itinerary.isPostPaid) {
-                        if (!this.$$('#creditCard').$.securityCode.value) {
-                            this.$$('#address').pullCountryList();
-                        }
-                        this.$$('#address').$.phoneNumber.value = this.passengerInfo.phone;
-                        this.$$('#creditCard').$.securityCode.value = '';
-                    }
-
                     this._getPayableAmount();
 
                     this.$.itineraryDetails.setDetails(this.itinerary, this.searchCriteria);
 
                     this._setFareDetails();
+                },
+
+                _countryCall: function () {
+                    if(!this.itinerary || this.itinerary.isPostPaid) {
+                        return;
+                    }
+                    this.$$('#address').pullCountryList();
+                    this.$$('#address').$.phoneNumber.value = this.passengerInfo.phone;
+                    this.$$('#creditCard').$.securityCode.value = '';
                 },
 
                 _onBookSuccess: function (e) {
