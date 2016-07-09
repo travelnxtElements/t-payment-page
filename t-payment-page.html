@@ -267,6 +267,11 @@
                 },
 
                 _visibleChange: function (visible) {
+
+                    this.$.notify.active = false;
+
+                    this.$.acceptance.checked = false;
+                    
                     if (visible && (!this.itinerary || !this.passengerInfo || !this.searchCriteria || !this.authToken)) {
                         this.fire('go-to-search');
                     }
@@ -277,10 +282,6 @@
                     if (!this.itinerary || !passengerInfo || !this.searchCriteria || !authToken){
                         return;
                     }
-
-                    this.$.notify.active = false;
-
-                    this.$.acceptance.checked = false;
 
                     this._getPayableAmount();
 
