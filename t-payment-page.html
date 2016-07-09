@@ -10,6 +10,7 @@
 <link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
 <link rel="import" href="../t-text-container/travel-element-styles.html">
 <link rel="import" href="../t-shared-lib/t-date-behavior.html">
+<link rel="import" href="../t-shared-lib/t-page-load-behavior.html">
 <link rel="import" href="../t-loader/t-fullpage-loader.html">
 
 <dom-module id="t-payment-page">
@@ -139,7 +140,8 @@
                 is: 't-payment-page',
 
                 behaviors: [
-                    TravelNxt.Behaviors.DateBehavior
+                    TravelNxt.Behaviors.DateBehavior,
+                    TravelNxt.Behaviors.PageLoadBehavior
                 ],
 
                 properties: {
