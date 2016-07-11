@@ -236,9 +236,10 @@
                     }
                 },
 
-                observers:[                
+                observers:[
                     '_visibleChange(visible)',
-                    '_paymentPageRedirect(authToken, passengerInfo)'
+                    '_paymentPageRedirect(authToken, passengerInfo)',
+                    '_setBookButtonLabel(itinerary)'
                 ],
 
                 bookNow: function () {
@@ -373,6 +374,13 @@
                     }
 
                     this._payableAmount = totalFare.money.currency + ' ' + totalFare.money.amount;
+                },
+
+                _setBookButtonLabel: function (itinerary) {
+
+                    this.$.submit.label = itinerary && itinerary.isPostPaid 
+                                        ? 'reserve now'
+                                        : 'book now';
                 },
 
                 _setFareDetails: function () {
