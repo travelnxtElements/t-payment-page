@@ -286,7 +286,7 @@
                     }
 
                     if (this.$$('#address')) {
-                        this.$$('#address').$.phoneNumber.value = this.passengerInfo.phone;
+                        this._countryCall();
                     }
 
                     this._getPayableAmount();
@@ -297,7 +297,7 @@
                 },
 
                 _countryCall: function () {
-                    if(!this.itinerary || this.itinerary.isPostPaid) {
+                    if(!this.itinerary || this.itinerary.isPostPaid || !this.passengerInfo) {
                         return;
                     }
                     this.$$('#address').pullCountryList();
