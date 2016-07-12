@@ -94,7 +94,7 @@
             </t-address>
         </template>
 
-        <div class="layout horizontal start section-small">
+        <div class="layout horizontal start section-small"  on-tap="_checkBoxCheck">
             <t-checkbox id="acceptance" checked="{{checked}}"><div hidden>something</div></t-checkbox>
             <div class="flex font-12 secondary-text">
                 I have read and accept the <a class="link-style" on-click="showPolicies">Booking Policies</a>, <a href="http://www.bluegreenvacations.com/terms-of-use" class="link-style" target="_blank">Terms & Conditions</a> and <a href="http://www.bluegreenvacations.com/privacy-policy" class="link-style" target="_blank">Privacy Policy</a>.
@@ -414,6 +414,13 @@
                         this._processingMsg = true;
                         this._longProcessingMsg = false;
                     }.bind(this), parseInt(this.paymentTimer));
+                },
+
+                //patch for checkbox to check when clicked on the entire div
+                _checkBoxCheck: function (e) {
+                    if (e.srcElement.tagName.toLowerCase !== 'a') {
+                        this.checked = !this.checked;
+                    }
                 }
             });
         })();
