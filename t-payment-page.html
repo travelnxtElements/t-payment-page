@@ -106,7 +106,7 @@
                 label="Pay now" 
                 id="submit" 
                 class="primary flex" 
-                disabled="{{!checked}}" 
+                disabled="[[!checked]]" 
                 on-click="bookNow">              
             </t-button>
         </div>
@@ -249,6 +249,7 @@
                     this.$.notify.active = false;
 
                     if (this.validate()) {
+                        this.$.submit.disabled = true;
                         this._showFullPageLoader = true;
                         var data = this._getBookingData();
                         this.$.bookApi.book(data);
@@ -302,6 +303,7 @@
 
                 _onBookSuccess: function (e) {
                     this._showFullPageLoader = false;
+                    this.$.submit.disabled = false;
                     
                     if (!e.detail) {
                       return;
@@ -313,6 +315,7 @@
 
                 _onBookError: function (e) {
                     this._showFullPageLoader = false;
+                    this.$.submit.disabled = false;
                     this.$.notify.active = true;
                     this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                     this.fire('book-error');
@@ -380,7 +383,7 @@
 
                     this.$.submit.label = itinerary && itinerary.isPostPaid 
                                         ? 'reserve now'
-                                        : 'book now';
+                                        : 'pay now';
                 },
 
                 _setFareDetails: function () {
