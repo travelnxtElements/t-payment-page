@@ -285,6 +285,10 @@
                         return;
                     }
 
+                    if (this.$$('#address')) {
+                        this.$$('#address').$.phoneNumber.value = this.passengerInfo.phone;
+                    }
+
                     this._getPayableAmount();
 
                     this.$.itineraryDetails.setDetails(this.itinerary, this.searchCriteria);
