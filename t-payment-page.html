@@ -418,7 +418,7 @@
 
                 //patch for checkbox to check when clicked on the entire div
                 _checkBoxCheck: function (e) {
-                    if (e.srcElement.tagName.toLowerCase !== 'a') {
+                    if (e.srcElement.tagName.toLowerCase() !== 'a' && e.srcElement.id.toLowerCase() !== 'checkboxcontainer') {
                         this.checked = !this.checked;
                     }
                 }
