@@ -12,6 +12,7 @@
 <link rel="import" href="../t-shared-lib/t-date-behavior.html">
 <link rel="import" href="../t-shared-lib/t-page-load-behavior.html">
 <link rel="import" href="../t-loader/t-fullpage-loader.html">
+<link rel="import" href="../t-policy/t-policy.html">
 
 <dom-module id="t-payment-page">
     <template>
@@ -39,6 +40,18 @@
             label="Trip Summary">              
         </t-section-header>
         
+        <t-policy id="policy" 
+            label="Booking Policies"
+            external-link
+            api-relative-url="api/ShoppingCart/add" 
+            api-base-url="[[apiBaseUrl]]"
+            auth-token="[[authToken]]"
+            search-id="[[searchId]]"
+            inventory-id="[[itinerary.id]]"
+            policies="[[itinerary.generalPolicies]]"
+            is-data-provided-by-view>
+        </t-policy>
+
         <t-car-itinerary-details
             id="itineraryDetails"
             is-collapsible>
@@ -97,7 +110,7 @@
         <div class="layout horizontal start section-small"  on-tap="_checkBoxCheck">
             <t-checkbox id="acceptance" checked="{{checked}}"><div hidden>something</div></t-checkbox>
             <div class="flex font-12 secondary-text">
-                I have read and accept the <a class="link-style" on-click="showPolicies">Booking Policies</a>, <a href="http://www.bluegreenvacations.com/terms-of-use" class="link-style" target="_blank">Terms & Conditions</a> and <a href="http://www.bluegreenvacations.com/privacy-policy" class="link-style" target="_blank">Privacy Policy</a>.
+                I have read and accept the <a class="link-style" on-click="_showPolicies">Booking Policies</a>, <a href="http://www.bluegreenvacations.com/terms-of-use" class="link-style" target="_blank">Terms & Conditions</a> and <a href="http://www.bluegreenvacations.com/privacy-policy" class="link-style" target="_blank">Privacy Policy</a>.
             </div>
         </div>
 
@@ -266,6 +279,10 @@
                     var isValid = true;
                     isValid = this.$$('#address').validate() && isValid;
                     return this.$$('#creditCard').validate() && isValid;
+                },
+
+                _showPolicies: function () {
+                    this.$.policy.initiatePolicyCall();
                 },
 
                 _visibleChange: function (visible) {
