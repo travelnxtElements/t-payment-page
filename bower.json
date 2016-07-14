@@ -1,5 +1,9 @@
 {
   "name": "t-payment-page",
+  "version": "0.0.0",
+  "authors": [
+    "Manoj Chalode <chalodem@gmail.com>"
+  ],
   "description": "this is a generic payment  age componentpage component ",
   "main": "t-payment-page.html",
   "dependencies": {
