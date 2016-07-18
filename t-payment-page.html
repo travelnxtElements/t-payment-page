@@ -301,6 +301,9 @@
                     if (visible && (!this.itinerary || !this.passengerInfo || !this.searchCriteria || !this.authToken)) {
                         this.fire('go-to-search');
                     }
+
+                    //initiate policy component
+                    this.$.policy.initiatePolicyView();
                 },
 
                 _paymentPageRedirect: function (authToken, passengerInfo) {
