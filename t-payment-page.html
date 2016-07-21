@@ -4,6 +4,8 @@
 <link rel="import" href="../t-creditcard/t-creditcard.html">
 <link rel="import" href="../t-checkbox/t-checkbox.html">
 <link rel="import" href="../t-button/t-button.html">
+<link rel="import" href="../t-car-itinerary-details/t-car-itinerary-details.html">
+<link rel="import" href="../t-faredetails/t-faredetails.html">
 <link rel="import" href="../t-section-header/t-section-header.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" />
 <link rel="import" href="t-car-book-api.html"/>
@@ -13,6 +15,60 @@
 <link rel="import" href="../t-shared-lib/t-page-load-behavior.html">
 <link rel="import" href="../t-loader/t-fullpage-loader.html">
 <link rel="import" href="../t-policy/t-policy.html">
+
+<!--
+    <h3>Details:</h3>
+
+        `t-payment-page` is a car payment page component which displays payment information.
+
+        It uses following child components in it -
+            1.  `t-notify`
+            2.  `t-header`
+            3.  `t-policy`
+            4.  `t-car-itinerary-details`
+            5.  `t-faredetails`
+            7.  `t-sessionstorage`
+            8.  `t-address`
+            9.  `t-credit-card`
+            10. `t-checkbox`
+            11. `t-button`
+            12. `t-seaction-header`
+            13. `t-fullpage-loader`
+
+    <h3>Events:</h3>
+
+        following events are fired by this component
+
+            1. 'book-success' - fired when booking is successful.
+            2. 'book-error' - fired when booking fails.
+            3. `go-to-search` - fired when page is loaded without required page data.
+
+    <h3>Example:</h3>
+
+        <t-payment-page
+            id="payment"
+            name="payment"
+            search-criteria="[[searchCriteria]]"
+            api-base-url="[[apiBaseUrl]]"
+            auth-token="[[authToken]]"
+            payment-timer="[[paymentTimer]]"
+            itinerary="[[selectedItinerary]]"
+            booked-itinerary="{{bookedItinerary}}"
+            passenger-info="[[passengerInfo]]"
+            api-url-format="[[apiUrlFormat]]"
+            stay-on-page
+            on-book-success="_goToConfirmationPage"
+            on-book-error="_goToFailurePage">
+            <t-header
+                icon="bgv:arrow-left"
+                 url="[[siteUrl]]car/paxInfo"
+                label="Make Payment"
+                normal-heading>
+            </t-header>
+        </t-payment-page>
+
+    @demo demo/index.html
+-->
 
 <dom-module id="t-payment-page">
     <template>
@@ -162,6 +218,10 @@
 
                 properties: {
 
+                    /*
+                     * <p>This is a notification flag to indicate current page state</p>
+                     * <p>Set it to true if page needs to be displayed on browser</p>
+                    */
                     visible: {
                       type: Boolean,
                       value: false,
@@ -193,7 +253,7 @@
                     },
 
                     /*
-                     * <p>This property holds the value of web api URL format</p>
+                     * <p>This is the processing message</p>
                     */
                     _processingMsg: {
                         type: Boolean,
@@ -201,7 +261,8 @@
                     },
 
                     /*
-                     * <p>This property holds the value of web api URL format</p>
+                     * <p>This is the long processing message</p>
+                     * <p>It gets displayed when `paymentTimer` is exceeded</p>
                     */
                     _longProcessingMsg: {
                         type: Boolean,
@@ -209,7 +270,7 @@
                     },
 
                     /*
-                     * <p>This property holds the value of web api URL format</p>
+                     * <p>This flag toggles visibility of full page loader</p>
                     */
                     _showFullPageLoader: {
                         type: Boolean,
@@ -217,14 +278,14 @@
                     },
 
                     /*
-                     * <p>This property holds the value of web api URL format</p>
+                     * <p>This property shows payable amount with currency format</p>
                     */
                     _payableAmount: {
                         type: String
                     },
 
                     /*
-                     * <p>This property holds the value of loader message timer value in miliseconds</p>
+                     * <p>This is the timer value which is used to alter the processing message</p>
                     */
                     paymentTimer: {
                         type: String,
@@ -232,21 +293,30 @@
                     },
 
                     /*
-                     * <p>This property holds the value of web api URL format</p>
+                     * <p>This property holds the value of selected itinerary</p>
                     */
                     itinerary: {
                         type: Object
                     },
 
+                    /*
+                     * <p>This property holds the value of booked itinerary</p>
+                    */
                     bookedItinerary: {
                         type: Object,
                         notify: true
                     },
 
+                    /*
+                     * <p>This property holds the value of passenger info</p>
+                    */
                     passengerInfo: {
                         type: Object
                     },
 
+                    /*
+                     * <p>This property holds the value of search criteria</p>
+                    */
                     searchCriteria: {
                       type: Object
                     }
@@ -261,7 +331,10 @@
                 listeners: {
                     'policy-click': '_showPolicies'
                 },
-
+                
+                /*
+                 * <p>This is the event handler for payment button click</p>
+                */
                 bookNow: function () {
 
                     this._bindTimer();
@@ -276,6 +349,9 @@
                     }
                 },
 
+                /*
+                 * <p>This method validated payment page information</p>
+                */
                 validate: function () {
                     if (this.$.submit.disabled) {
                       return false;
@@ -288,10 +364,10 @@
                     return this.$$('#creditCard').validate() && isValid;
                 },
 
-                _showPolicies: function () {
-                    this.$.policy.initiatePolicyCall();
-                },
-
+                /*
+                 * <p>this method gets called when page becomes visible</p>
+                 * <p>`go-to-search` event is fired if `bookedItinerary` property is not set.</p>
+                */
                 _visibleChange: function (visible) {
 
                     this.$.notify.active = false;
@@ -306,6 +382,9 @@
                     this.$.policy.initiatePolicyView();
                 },
 
+                /*
+                 * <p>observer function for page `authToken`, `passengerInfo` properties</p>
+                */
                 _paymentPageRedirect: function (authToken, passengerInfo) {
 
                     if (!this.itinerary || !passengerInfo || !this.searchCriteria || !authToken){
@@ -323,6 +402,28 @@
                     this._setFareDetails();
                 },
 
+                /*
+                 * <p>observer function for page `itinerary`, property</p>
+                */
+                _setBookButtonLabel: function (itinerary) {
+
+                    this.$.submit.label = itinerary && itinerary.isPostPaid 
+                                        ? 'reserve now'
+                                        : 'pay now';
+                },
+
+                /*
+                 * <p>this method gets called when policy link in `t-car-itinerary-details` component is clicked.</p>
+                 * <p>It is triggered by the `policy-click` listener.</p>
+                */
+                _showPolicies: function () {
+                    this.$.policy.initiatePolicyCall();
+                },
+
+                /*
+                 * <p>This method envokes country call to populate countrie in dropdown</p>
+                 * <p>It is envoked only when payment is prepaid</p>
+                */
                 _countryCall: function () {
                     if(!this.itinerary || this.itinerary.isPostPaid || !this.passengerInfo) {
                         return;
@@ -332,6 +433,9 @@
                     this.$$('#creditCard').$.securityCode.value = '';
                 },
 
+                /*
+                 * <p>This is booking api success handler</p>
+                */
                 _onBookSuccess: function (e) {
                     this._showFullPageLoader = false;
                     this.$.submit.disabled = false;
@@ -344,6 +448,9 @@
                     this.$.sessionStore.save();
                 },
 
+                /*
+                 * <p>This is booking api error handler</p>
+                */
                 _onBookError: function (e) {
                     this._showFullPageLoader = false;
                     this.$.submit.disabled = false;
@@ -357,6 +464,9 @@
                     this.fire('book-success', this.$.sessionStore.value);
                 },
 
+                /*
+                 * <p>This is session success handler</p>
+                */
                 _getBookingData: function () {
 
                     return {
@@ -366,6 +476,9 @@
                     }        
                 },
 
+                /*
+                 * <p>This method collects credit card information.</p>
+                */
                 _getCreditCardInfo: function () {
                   var address = this.$$('#address').getAddress();
                   var payment = this.$$('#creditCard').getInfo();
@@ -374,6 +487,9 @@
                   return payment;
                 },
 
+                /*
+                 * <p>This is a translator to translate book api response into confirmation page compatible data.</p>
+                */
                 _translateItinerary: function (bookedItinerary) {
 
                     bookedItinerary.inventoriesInfo[0].searchCriteria.pickupTime = bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate.time;
@@ -394,6 +510,9 @@
                     };
                 },
 
+                /*
+                 * <p>This generates formatted payable amount</p>
+                */
                 _getPayableAmount: function () {
                     if (!this.itinerary || !this.itinerary.fare) {
                         return '';
@@ -410,13 +529,9 @@
                     this._payableAmount = totalFare.money.currency + ' ' + totalFare.money.amount;
                 },
 
-                _setBookButtonLabel: function (itinerary) {
-
-                    this.$.submit.label = itinerary && itinerary.isPostPaid 
-                                        ? 'reserve now'
-                                        : 'pay now';
-                },
-
+                /*
+                 * <p>This is a translator method to set fare details data</p>
+                */
                 _setFareDetails: function () {
                     if (!this.itinerary || !this.searchCriteria) {
                         return;
@@ -435,6 +550,9 @@
                     }
                 },
 
+                /*
+                 * <p>handler for booking message timer calculation</p>
+                */
                 _bindTimer: function () {
 
                     var _timer = setTimeout(function () {
@@ -442,8 +560,10 @@
                         this._longProcessingMsg = false;
                     }.bind(this), parseInt(this.paymentTimer));
                 },
-
-                //patch for checkbox to check when clicked on the entire div
+                
+                /*
+                 * <p>handler to make terms and condition clickable & checks the checkbox</p>
+                */
                 _checkBoxCheck: function (e) {
                     if (e.srcElement.tagName.toLowerCase() !== 'a') {
                         this.checked = !this.checked;

@@ -1,14 +1,451 @@
 <!doctype html>
 <html>
-  <head>
+
+<head>
     <title>t-payment-page demo</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <link rel="import" href="../t-payment-page.html">
     <link rel="import" href="../../t-shared-components/theme.html">
-  </head>
-  <body>
-      <t-payment-page></t-payment-page>
-  </body>
+</head>
+
+<body>
+
+    <template is="dom-bind" id="templatizer">
+
+        <t-payment-page
+            id="payment"
+            name="payment"
+            visible="[[visible]]"
+            search-criteria="[[searchCriteria]]"
+            api-base-url="[[apiBaseUrl]]"
+            auth-token="blahblah"
+            payment-timer="[[paymentTimer]]"
+            itinerary="[[itinerary]]"
+            booked-itinerary="{{bookedItinerary}}"
+            passenger-info="[[passengerInfo]]"
+            api-url-format="[[apiUrlFormat]]"
+            stay-on-page
+            on-book-success="_goToConfirmationPage"
+            on-book-error="_goToFailurePage">
+            <t-header
+                icon="arrow-back"
+                 url="[[siteUrl]]car/paxInfo"
+                label="Make Payment"
+                normal-heading>
+            </t-header>
+        </t-payment-page>
+        
+    </template>
+
+</body>
+
+<script type="text/javascript">
+(function() {
+
+    'use strict'
+
+    var templatizer = document.getElementById('templatizer');
+
+    templatizer.searchCriteria = {
+        "pickupLocation": {
+            "code": "LAS",
+            "name": "McCarran International Airport",
+            "cityName": "Las Vegas",
+            "countryCode": "US",
+            "countryName": "United States",
+            "geoCode": "36.0854,-115.15",
+            "id": 2102,
+            "stateCode": "NV",
+            "stateName": "Nevada",
+            "type": "Airport",
+            "additionalInfo": null,
+            "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
+        },
+        "pickupDate": "09/15/2016",
+        "dropoffLocation": {
+            "code": "LAS",
+            "name": "McCarran International Airport",
+            "cityName": "Las Vegas",
+            "countryCode": "US",
+            "countryName": "United States",
+            "geoCode": "36.0854,-115.15",
+            "id": 2102,
+            "stateCode": "NV",
+            "stateName": "Nevada",
+            "type": "Airport",
+            "additionalInfo": null,
+            "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
+        },
+        "dropoffDate": "09/20/2016",
+        "isDropoffLocationSame": true,
+        "pickupTime": "11:00 AM",
+        "dropoffTime": "11:00 AM"
+    };
+
+    templatizer.itinerary = {
+        "type": "Car",
+        "brand": {
+            "code": "ZA",
+            "name": "Payless",
+            "logo": "https://cdn.cartrawler.com/otaimages/vendor/payless.jpg"
+        },
+        "heroImageUrl": "https://cdn.cartrawler.com/otaimages/dodge/neon_nologo.jpg",
+        "optionalEquipment": [
+
+        ],
+        "fareType": null,
+        "airConditioning": "Yes",
+        "capacity": "FourToFive",
+        "category": "Compact",
+        "baggage": 3,
+        "doors": "Four",
+        "driveType": "NotSpecified",
+        "fuelType": "NotSpecified",
+        "transmission": "Automatic",
+        "vehicleType": "Car",
+        "generalPolicies": [{
+            "type": "Fee to pay on arrival",
+            "policies": [
+                "Fee to pay on arrival : 244.99 USD."
+            ]
+        }, {
+            "type": "Age Requirements",
+            "policies": [
+                "Renter must be 25 years of age with a valid drivers license and a major credit card in his/her own name. Renters 21 through 25 years of age with a major credit card in his/her name may rent an Economy, Compact, Intermediate, Standard or Full-size car or a Minivan with an additional $25.00 per day surcharge."
+            ]
+        }, {
+            "type": "Geographical Restrictions / Travel Limitations",
+            "policies": [
+                "Location must be notified at time of rental when driving out of the originating state. Failure to notify location may result in additional penalties., One-Way: All car groups may be rented one-way based on availability. Unauthorized one-way rentals will be subject to a surcharge."
+            ]
+        }, {
+            "type": "Directions",
+            "policies": [
+                "*GENERAL DIRECTIONS*, Shuttle to Car Rental Facility, Courtesy bus service is available between the airport terminal (outside the baggage claim area) and the Payless rental car facility."
+            ]
+        }, {
+            "type": "Additional Fees",
+            "policies": [
+                "Optional coverages, services, products, special equipment and one-way fees are subject to additional taxes in certain locations that may not be reflected in the approximate total., Frequent Flyer surcharges may be applied at time of rental., Extensions or late returns may result in additional charges."
+            ]
+        }, {
+            "type": "Credit Card Policies",
+            "policies": [
+                "The following are accepted forms of payment:, - Visa, - MasterCard, - American Express, - Discover, - Carte Blanche, - Diners Club Intl, CREDIT CARD HOLD: The estimated amount of the rental plus $200.00 will be authorized against your credit card at the time of rental.  Unused authorizations will be released upon return of the vehicle., CREDIT CARD CHANGE FEE: Final rental charges must remain on the credit or debit card used for payment at the onset of the rental to avoid a one-time fee of $10.00, plus applicable taxes and fees, for the re-processing of an alternate card., Payless accepts prepaid cards for payment at car return only"
+            ]
+        }, {
+            "type": "Driver's License Requirements",
+            "policies": [
+                "At time of pick up, driver must present a valid, U.S.-issued driver's license and credit card (or debit card at participating locations) in the driver's name. If the driver's license is not U.S.-issued, you must present your drivers license and either a passport or a Canadian enhanced license in the driver's name."
+            ]
+        }, {
+            "type": "Additional Drivers",
+            "policies": [
+                "All drivers must meet our minimum age requirements and present a valid photo drivers license and credit card in his/her own name.  All location policies that apply to the renter will also apply to the additional driver., Additional driver fee is $13.00 per day per additional driver."
+            ]
+        }, {
+            "type": "Optional Coverages",
+            "policies": [
+                "Collision Damage Waiver (CDW) isoptional.  If you accept full CDW by your initials on the rental document at the daily rate, for each full or partial day that the car is rented to you, and the car is operated in accordance with the agreement, we assume all loss or damage to the car except, if permitted by law, for lost, damaged or stolen keys or remote entry devices, towing or tire service unless related to an accident, or recovery of the car if stolen, and except by your amount of responsibility, if any, specified on the rental document.  Partial Loss Damage Waiver (PDW) is available only where permitted by law.  If you accept PDW at the indicated daily rate, and the car is operated in accordance with this agreement, we assume all loss or damage to the car up to the amount as specified on the rental document and you accept responsibility for all other loss or damage.  If you do not accept either CDW or PDW, you owe for all loss or damage to the car."
+            ]
+        }, {
+            "type": "Fuel Policy",
+            "policies": [
+                "OPTION #1: PREPAY FUEL OPTION (BUY A TANK), Vehicle is rented with a full tank.  You may purchase a full tank of fuel at the time of rental and bring the vehicle back with fuel at any level.  There will be no credit issued for unused fuel., OPTION #2: FUEL SERVICE OPTION (WE FILL THE TANK), Vehicle is rented with a full tank.  You may bring the vehicle back full to avoid a charge or Payless will refuel your vehicle based on the miles driven or level of the tank.  A refueling service fee will apply per gallon."
+            ]
+        }, {
+            "type": "Debit Card Policies",
+            "policies": [
+                "Debit cards are accepted for renters 25 and older when renting an Economy, Compact, Intermediate, Standard, Full size, Premium, SUV or Minvan only. The estimated amount of the rental plus an additional amount of $350.00 will be assessed against your debit card at the time of rental. We release the hold on the funds when the vehicle is returned, however, these funds may no longer be available for your immediate use and may take up to 14 days, depending on your bank, to become available., We will not be responsible for any returned check or insufficient fund charges or bank fees related to this process. Use of a debit card to rent a vehicle may be subject to a review of your credit history. The inquiry will be posted on your credit report and may have an effect on your credit score. If the debit card fails to meet our debit card criteria, you may either be unable to rent a vehicle or required to present a major credit card in your name to qualify for a rental at this location."
+            ]
+        }, {
+            "type": "Rental Rules",
+            "policies": [
+                "Your car rental base rate is guaranteed and payable upon pick-up at the counter.",
+                "The rate is guaranteed for the time frame between the stated pick-up and return times. Vehicles returned outside of these times may be subject to additional rental fees.",
+                "A valid driver’s license and major credit card are required in order to pick-up the car. Taxes and surcharges are estimated and payable at the rental counter. ",
+                "Drivers under the age of 25 may be denied the rental. Please make sure your rental provider is aware of drivers under the age of 25. Where applicable, additional fees may apply for drivers under 25 years of age, additional drivers, debit card usage or optional services."
+            ]
+        }],
+        "mileage": {
+            "allowedUnits": {
+                "amount": 0,
+                "from": "City",
+                "unit": "Kilometer",
+                "displayAmount": "0.00km"
+            },
+            "isUnlimited": true,
+            "rateType": "Unspecified",
+            "extraMileageCharges": [
+
+            ]
+        },
+        "pickupInfo": {
+            "address": "McCarran Intl",
+            "completeAddress": {
+                "addressLine1": null,
+                "addressLine2": null,
+                "completeAddress": "McCarran Intl",
+                "phoneNumber": null,
+                "zipCode": null,
+                "city": null,
+                "country": null,
+                "state": null
+            },
+            "atAirport": true,
+            "startTime": "",
+            "endTime": "",
+            "inTerminal": true,
+            "shuttleInfo": "CarRentalShuttle",
+            "type": "Corporate",
+            "distance": {
+                "amount": 0,
+                "from": "Airport",
+                "unit": "Mile",
+                "displayAmount": "0.00km"
+            }
+        },
+        "dropoffInfo": {
+            "address": "McCarran Intl",
+            "completeAddress": {
+                "addressLine1": null,
+                "addressLine2": null,
+                "completeAddress": "McCarran Intl",
+                "phoneNumber": null,
+                "zipCode": null,
+                "city": null,
+                "country": null,
+                "state": null
+            },
+            "atAirport": true,
+            "startTime": "",
+            "endTime": "",
+            "inTerminal": true,
+            "shuttleInfo": "CarRentalShuttle",
+            "type": "Corporate",
+            "distance": {
+                "amount": 0,
+                "from": "Airport",
+                "unit": "Mile",
+                "displayAmount": "0.00km"
+            }
+        },
+        "policies": [{
+            "description": "Please cancel your reservation online under my reservations. You may also call Travel Services at 800-459-1597 to cancel or modify your reservation.",
+            "isQuantifiable": false,
+            "window": null,
+            "penalty": null,
+            "type": "BlanketCancellation"
+        }],
+        "minFare": {
+            "areRatesAvailable": true,
+            "fare": {
+                "amount": 244.99,
+                "currency": "USD",
+                "displayAmount": "$244.99",
+                "type": "USD"
+            },
+            "equivalentFares": [
+
+            ],
+            "equivalents": null
+        },
+        "guaranteeText": null,
+        "phoneNumber": "727/321-6352 x137",
+        "isCancellable": true,
+        "allPassengersInfoRequired": false,
+        "isGuaranteeRequired": false,
+        "id": "OV9fMTYyY2JkMWEtYzg4ZC00ZGY2LWJjOTUtZjJmNjYyNjdmMWFj",
+        "name": "Dodge Neon or similar",
+        "fare": {
+            "type": "Published",
+            "code": null,
+            "isRefundable": false,
+            "components": [{
+                "money": {
+                    "amount": 244.99,
+                    "currency": "USD",
+                    "displayAmount": "$244.99",
+                    "type": "USD"
+                },
+                "components": [
+
+                ],
+                "type": "BaseFare",
+                "properties": [
+
+                ]
+            }, {
+                "money": {
+                    "amount": 244.99,
+                    "currency": "USD",
+                    "displayAmount": "$244.99",
+                    "type": "USD"
+                },
+                "components": [
+
+                ],
+                "type": "TotalFare",
+                "properties": [
+
+                ]
+            }, {
+                "money": {
+                    "amount": 0,
+                    "currency": "USD",
+                    "displayAmount": "$0.00",
+                    "type": "USD"
+                },
+                "components": [
+
+                ],
+                "type": "TotalFee",
+                "properties": [
+
+                ]
+            }, {
+                "money": {
+                    "amount": 0,
+                    "currency": "USD",
+                    "displayAmount": "$0.00",
+                    "type": "USD"
+                },
+                "components": [
+
+                ],
+                "type": "TotalTax",
+                "properties": [
+
+                ]
+            }, {
+                "money": {
+                    "amount": 0,
+                    "currency": "USD",
+                    "displayAmount": "$0.00",
+                    "type": "USD"
+                },
+                "components": [
+
+                ],
+                "type": "TotalDiscount",
+                "properties": [
+
+                ]
+            }],
+            "equivalents": null
+        },
+        "fareWithAddOns": {
+            "type": "Published",
+            "code": null,
+            "isRefundable": false,
+            "components": [{
+                "money": {
+                    "amount": 244.99,
+                    "currency": "USD",
+                    "displayAmount": "$244.99",
+                    "type": "USD"
+                },
+                "components": [
+
+                ],
+                "type": "BaseFare",
+                "properties": [
+
+                ]
+            }, {
+                "money": {
+                    "amount": 244.99,
+                    "currency": "USD",
+                    "displayAmount": "$244.99",
+                    "type": "USD"
+                },
+                "components": [
+
+                ],
+                "type": "TotalFare",
+                "properties": [
+
+                ]
+            }, {
+                "money": {
+                    "amount": 0,
+                    "currency": "USD",
+                    "displayAmount": "$0.00",
+                    "type": "USD"
+                },
+                "components": [
+
+                ],
+                "type": "TotalFee",
+                "properties": [
+
+                ]
+            }, {
+                "money": {
+                    "amount": 0,
+                    "currency": "USD",
+                    "displayAmount": "$0.00",
+                    "type": "USD"
+                },
+                "components": [
+
+                ],
+                "type": "TotalTax",
+                "properties": [
+
+                ]
+            }, {
+                "money": {
+                    "amount": 0,
+                    "currency": "USD",
+                    "displayAmount": "$0.00",
+                    "type": "USD"
+                },
+                "components": [
+
+                ],
+                "type": "TotalDiscount",
+                "properties": [
+
+                ]
+            }],
+            "equivalents": null
+        },
+        "isPostPaid": true,
+        "isSoldOut": false,
+        "isPreferred": false,
+        "addOns": null,
+        "preferredSortOrder": 0,
+        "source": {
+            "inventoryId": "OV9fMTYyY2JkMWEtYzg4ZC00ZGY2LWJjOTUtZjJmNjYyNjdmMWFj",
+            "id": 119,
+            "name": "TAA-CAL"
+        },
+        "restrictions": null
+    };
+
+    templatizer.visible = true;
+
+    setTimeout(function () {
+        templatizer.passengerInfo = {
+            "passengerList": [{
+                "title": "Mr",
+                "firstName": "Manoj",
+                "lastName": "Chalode",
+                "type": "Adult",
+                "genderString": "Male"
+            }],
+            "phone": "9730266287",
+            "email": "chalodem@gmail.com"
+        };        
+    }.bind(this), 500);
+
+})();
+</script>
+
+
+
+
 </html>
