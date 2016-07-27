@@ -14,7 +14,8 @@
     "t-address": "travelnxtElements/t-address#^1.0.2",
     "t-checkbox": "atomelements/t-checkbox#^1.1.3",
     "t-button": "atomelements/t-button#^1.2.0",
-    "t-car-itinerary-details": "travelnxtelements/t-car-itinerary-details",
+    "t-car-itinerary-details": "travelnxtelements/t-car-itinerary-details#^1.0.0",
+    "t-shared-lib": "travelnxtelements/t-shared-lib#^1.0.2",
     "t-sessionstorage": "travelnxtelements/t-sessionstorage#^1.0.1",
     "t-loader": "atomelements/t-loader#^1.1.4"
   },
@@ -25,15 +26,5 @@
     "t-faredetails": "travelnxtelements/t-faredetails#^1.1.1",
     "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.2.1",
     "t-text-container": "travelnxtelements/t-text-container#^1.1.1"
-  },
-  "resolutions": {
-    "t-text-container": "^1.1.1",
-    "t-notify": "^1.1.1",
-    "t-button": "^1.2.0",
-    "t-loader": "^1.1.4",
-    "iron-flex-layout": "^1.3.1",
-    "iron-icons": "^1.0.5",
-    "t-shared-lib": "^1.0.2",
-    "t-header": "^1.0.0"
   }
 }
