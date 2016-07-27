@@ -213,140 +213,18 @@
 
                 behaviors: [
                     TravelNxt.Behaviors.DateBehavior,
-                    TravelNxt.Behaviors.PageLoadBehavior
+                    TravelNxt.Behaviors.PageLoadBehavior,
+                    TravelNxt.Behaviors.PaymentBehavior
                 ],
 
-                properties: {
-
-                    /*
-                     * <p>This is a notification flag to indicate current page state</p>
-                     * <p>Set it to true if page needs to be displayed on browser</p>
-                    */
-                    visible: {
-                      type: Boolean,
-                      value: false,
-                      notify: true
-                    },
-
-                    /*
-                     * <p>This string is query string containing token value</p>
-                    */
-                    authToken: {
-                        type: String,
-                        value: ''
-                    },
-
-                    /*
-                     * <p>This property holds the value of api base URL</p>
-                    */
-                    apiBaseUrl: {
-                        type: String,
-                        value: ''
-                    },
-
-                    /*
-                     * <p>This property holds the value of web api URL format</p>
-                    */
-                    apiUrlFormat: {
-                        type: String,
-                        value: ''
-                    },
-
-                    /*
-                     * <p>This is the processing message</p>
-                    */
-                    _processingMsg: {
-                        type: Boolean,
-                        value: false
-                    },
-
-                    /*
-                     * <p>This is the long processing message</p>
-                     * <p>It gets displayed when `paymentTimer` is exceeded</p>
-                    */
-                    _longProcessingMsg: {
-                        type: Boolean,
-                        value: true
-                    },
-
-                    /*
-                     * <p>This flag toggles visibility of full page loader</p>
-                    */
-                    _showFullPageLoader: {
-                        type: Boolean,
-                        value: false
-                    },
+                properties: {                    
 
                     /*
                      * <p>This property shows payable amount with currency format</p>
                     */
                     _payableAmount: {
                         type: String
-                    },
-
-                    /*
-                     * <p>This is the timer value which is used to alter the processing message</p>
-                    */
-                    paymentTimer: {
-                        type: String,
-                        value: '10000'
-                    },
-
-                    /*
-                     * <p>This property holds the value of selected itinerary</p>
-                    */
-                    itinerary: {
-                        type: Object
-                    },
-
-                    /*
-                     * <p>This property holds the value of booked itinerary</p>
-                    */
-                    bookedItinerary: {
-                        type: Object,
-                        notify: true
-                    },
-
-                    /*
-                     * <p>This property holds the value of passenger info</p>
-                    */
-                    passengerInfo: {
-                        type: Object
-                    },
-
-                    /*
-                     * <p>This property holds the value of search criteria</p>
-                    */
-                    searchCriteria: {
-                      type: Object
-                    }
-                },
-
-                observers:[
-                    '_visibleChange(visible)',
-                    '_paymentPageRedirect(authToken, passengerInfo)',
-                    '_setBookButtonLabel(itinerary)'
-                ],
-
-                listeners: {
-                    'policy-click': '_showPolicies'
-                },
-                
-                /*
-                 * <p>This is the event handler for payment button click</p>
-                */
-                bookNow: function () {
-
-                    this._bindTimer();
-
-                    this.$.notify.active = false;
-
-                    if (this.validate()) {
-                        this.$.submit.disabled = true;
-                        this._showFullPageLoader = true;
-                        var data = this._getBookingData();
-                        this.$.bookApi.book(data);
-                    }
+                    }                    
                 },
 
                 /*
@@ -385,7 +263,7 @@
                 /*
                  * <p>observer function for page `authToken`, `passengerInfo` properties</p>
                 */
-                _paymentPageRedirect: function (authToken, passengerInfo) {
+                _pageLoad: function (authToken, passengerInfo) {
 
                     if (!this.itinerary || !passengerInfo || !this.searchCriteria || !authToken){
                         return;
