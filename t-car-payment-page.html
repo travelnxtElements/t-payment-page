@@ -19,7 +19,7 @@
 <!--
     <h3>Details:</h3>
 
-        `t-payment-page` is a car payment page component which displays payment information.
+        `t-car-payment-page` is a car payment page component which displays payment information.
 
         It uses following child components in it -
             1.  `t-notify`
@@ -45,7 +45,7 @@
 
     <h3>Example:</h3>
 
-        <t-payment-page
+        <t-car-payment-page
             id="payment"
             name="payment"
             search-criteria="[[searchCriteria]]"
@@ -65,12 +65,12 @@
                 label="Make Payment"
                 normal-heading>
             </t-header>
-        </t-payment-page>
+        </t-car-payment-page>
 
     @demo demo/index.html
 -->
 
-<dom-module id="t-payment-page">
+<dom-module id="t-car-payment-page">
     <template>
         <style include="iron-flex"></style>
         <style include="travel-element-styles">
@@ -209,7 +209,7 @@
 
             Polymer({
 
-                is: 't-payment-page',
+                is: 't-car-payment-page',
 
                 behaviors: [
                     TravelNxt.Behaviors.DateBehavior,

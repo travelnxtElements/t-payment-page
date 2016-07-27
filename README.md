@@ -1,4 +1,4 @@
-# \<t-payment-page\>
+# \<t-car-payment-page\>
 
 this is a generic payment  age componentpage component 
 

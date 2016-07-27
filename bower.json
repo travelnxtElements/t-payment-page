@@ -1,11 +1,11 @@
 {
-  "name": "t-payment-page",
+  "name": "t-car-payment-page",
   "version": "1.0.2",
   "authors": [
     "Manoj Chalode <chalodem@gmail.com>"
   ],
   "description": "this is a generic payment  age componentpage component ",
-  "main": "t-payment-page.html",
+  "main": "t-car-payment-page.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
     "t-notify": "atomelements/t-notify#^1.1.1",
