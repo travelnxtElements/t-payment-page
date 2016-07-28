@@ -4,7 +4,7 @@
 <link rel="import" href="../t-creditcard/t-creditcard.html">
 <link rel="import" href="../t-checkbox/t-checkbox.html">
 <link rel="import" href="../t-button/t-button.html">
-<link rel="import" href="../t-car-itinerary-details/t-car-itinerary-details.html">
+<link rel="import" href="../t-activity-itinerary-details/t-activity-itinerary-details.html">
 <link rel="import" href="../t-faredetails/t-faredetails.html">
 <link rel="import" href="../t-section-header/t-section-header.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" />
@@ -13,6 +13,7 @@
 <link rel="import" href="../t-text-container/travel-element-styles.html">
 <link rel="import" href="../t-shared-lib/t-page-load-behavior.html">
 <link rel="import" href="../t-shared-lib/t-payment-behavior.html">
+<link rel="import" href="../t-shared-lib/t-date-behavior.html">
 <link rel="import" href="../t-loader/t-fullpage-loader.html">
 <link rel="import" href="../t-policy/t-policy.html">
 
@@ -25,7 +26,7 @@
             1.  `t-notify`
             2.  `t-header`
             3.  `t-policy`
-            4.  `t-car-itinerary-details`
+            4.  `t-activity-itinerary-details`
             5.  `t-faredetails`
             7.  `t-sessionstorage`
             8.  `t-address`
@@ -111,10 +112,10 @@
             is-data-provided-by-view>
         </t-policy>
 
-        <t-car-itinerary-details
+        <t-activity-itinerary-details
             id="itineraryDetails"
             is-collapsible>
-        </t-car-itinerary-details>
+        </t-activity-itinerary-details>
 
         <t-faredetails 
           id="fareDetails"
@@ -198,7 +199,8 @@
 
                 behaviors: [
                     TravelNxt.Behaviors.PageLoadBehavior,
-                    TravelNxt.Behaviors.PaymentBehavior
+                    TravelNxt.Behaviors.PaymentBehavior,
+                    TravelNxt.Behaviors.DateBehavior
                 ],
 
                 /*
