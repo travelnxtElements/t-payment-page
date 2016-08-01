@@ -118,9 +118,18 @@
         </t-activity-itinerary-details>
 
         <t-faredetails 
-          id="fareDetails"
-          is-collapsible
-          itinerary-fare-label="Car Rental">
+            id="fareDetails"
+            is-collapsible
+            itinerary-fare-label="Car Rental">
+            <div class="passenger-fare-components">
+                <template is="dom-repeat" items="[[_passengerFares]]">
+                    <div class="layout horizontal item border-bottom baseFare">
+                        <span class="secondary-text">[[item.label]]</span>
+                        <span class="flex"></span>
+                        <span>[[item.currency]] [[item.fare]]</span>
+                    </div>                    
+                </template>
+            </div>
         </t-faredetails>
 
         <template is="dom-if" if="[[_showFullPageLoader]]">
@@ -202,6 +211,17 @@
                     TravelNxt.Behaviors.PaymentBehavior,
                     TravelNxt.Behaviors.DateBehavior
                 ],
+
+                properties: {
+
+                    /*
+                     * <p>This property holds the value of passenger count selected against the selected option</p>
+                     */
+                    passengers: {
+                        type: Array,
+                        notify: true
+                    }                    
+                },
 
                 /*
                  * <p>This method validated payment page information</p>
@@ -288,6 +308,70 @@
                     this.$.itineraryDetails.setDetails(this.itinerary, this.searchCriteria);
 
                     this._setFareDetails('Avg. per day rate x ');                    
+                },
+
+                /*
+                * <p>translator method to set view components data</p>
+                * <p>This method overrides behavior implementation</p>
+                */
+                _setFareDetails: function () {
+                    if (!this.itinerary || !this.searchCriteria) {
+                        return;
+                    }
+
+                    if (this.itinerary.fare && this.itinerary.fare.components) {
+                        this.$.fareDetails.data = this.itinerary.fare.components.filter(function (item) {
+                            return item.type.toLowerCase() !== 'basefare';
+                        });
+
+                        this._buildFareComponents();
+                    }
+                },
+
+                /*
+                 * <p>Builds fare components to include passenger-wise prices as per passenger counts provided while pricing</p>
+                */
+                _buildFareComponents: function () {
+                    if (!this.itinerary.options || !this.itinerary.options.length) {
+                        return;
+                    }
+
+                    var paxInfo = this.itinerary.options[0].passengerTypesInfo;
+
+                    var passengerFares = [];
+
+                    for (var i = 0; i < paxInfo.length; i++) {
+
+                        if (paxInfo[i].passengerType.toLowerCase() === 'youth') {
+                            continue;
+                        }
+
+                        var baseFare = paxInfo[i].fare.components.find(function (item) {
+                            return item.type.toLowerCase() === 'basefare';
+                        });
+
+                        if (!baseFare || !this.passengers || !this.passengers.length) {
+                            continue;
+                        }
+
+                        var passenger = this.passengers.find(function (item) {
+                            return item.type.toLowerCase() === paxInfo[i].passengerType.toLowerCase();
+                        });
+
+                        if (passenger && passenger.quantity) {
+                            passenger = parseInt(passenger.quantity);
+                        }
+
+                        if (passenger) {
+                            passengerFares.push({
+                                label: paxInfo[i].passengerType + ' x ' + passenger,
+                                fare: (baseFare.money.amount * passenger).toFixed(2),
+                                currency: baseFare.money.currency
+                            });
+                        }
+                    }
+
+                    this._passengerFares = passengerFares;
                 },
 
                 /*
