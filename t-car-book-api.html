@@ -110,7 +110,7 @@
 
                 this._getPassengers(data.passengerInfo);
 
-                this._getPaymentInfo(data.payment, data.itinerary.isPostPaid);
+                this._getPaymentInfo(data.payment);
 
                 this._getPaymentBreakup(data.itinerary.fare.components, data.itinerary.isPostPaid);
             },
@@ -127,22 +127,23 @@
                 for (var i = 0; i < passengerInfo.passengerList.length; i++) {
                     this.request.inventoriesInfo[0].passengerIds.push(i);
 
-                    passengerInfo.passengerList[i].gender = passengerInfo.passengerList[i].genderString;                
-                    passengerInfo.passengerList[i].emailAddress = passengerInfo.email;
-                    passengerInfo.passengerList[i].phoneNumber = passengerInfo.phone;
-                    passengerInfo.passengerList[i].id= i;
-                    
-                    //temporary date specifying user's age apprx equal to 25 years.
-                    passengerInfo.passengerList[i].dateOfBirth = { 
-                        date: "Tue, 04 Sep,1990",
-                        time: "12:46 PM"
-                    }
+                    var passenger = passengerInfo.passengerList[i];
 
-
-                    delete passengerInfo.passengerList[i]['genderString'];
-
-                    this.request.passengers.push(passengerInfo.passengerList[i]);
-                }      
+                    this.request.passengers.push({
+                        firstName: passenger.firstName,
+                        lastName: passenger.lastName,
+                        title: passenger.title,
+                        phoneNumber: passengerInfo.phone,
+                        dateOfBirth: { 
+                            date: "Tue, 04 Sep,1990",
+                            time: "12:46 PM"
+                        },
+                        emailAddress: passengerInfo.email,
+                        id: i,
+                        type: passenger.type,
+                        gender: passenger.genderString
+                    });
+                }
             },
 
             /*

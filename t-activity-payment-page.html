@@ -83,11 +83,11 @@
             :host, t-button {
                 display: block;                
             }
-            .payable {
-                font-size: var(--font-18, 18px);
-            }
             #acceptance {
                 margin-right: 10px;
+            }
+            .item{
+                padding: 10px 0;
             }
         </style>
 
@@ -290,11 +290,14 @@
                 /*
                  * <p>observer function for page `authToken`, `passengerInfo` properties</p>
                 */
-                _pageLoad: function (authToken, passengerInfo) {
+                _pageLoad: function (authToken, passengerInfo, apiBaseUrl) {
 
-                    if (!this.itinerary || !passengerInfo || !this.searchCriteria || !authToken){
+                    if (!passengerInfo || !authToken || !apiBaseUrl){
                         return;
                     }
+
+                    //sets passenger count mapping
+                    this._setPaxDetails();
 
                     this._setViewDetails();
                 },
@@ -339,7 +342,9 @@
                         return;
                     }
 
-                    var paxInfo = this.itinerary.options[0].passengerTypesInfo;
+                    this._passengerFares = [];
+
+                    var paxInfo = this.selectedOption.passengerTypesInfo;
 
                     var passengerFares = [];
 
@@ -361,13 +366,15 @@
                             return item.type.toLowerCase() === paxInfo[i].passengerType.toLowerCase();
                         });
 
-                        if (passenger && passenger.quantity) {
-                            passenger = parseInt(passenger.quantity);
+                        if (!passenger || !passenger.count) {
+                            continue;
                         }
+
+                        passenger = parseInt(passenger.count);
 
                         if (passenger) {
                             passengerFares.push({
-                                label: paxInfo[i].passengerType + ' x ' + passenger,
+                                label: paxInfo[i].multiplePassengerType + ' x ' + passenger,
                                 fare: (baseFare.money.amount * passenger).toFixed(2),
                                 currency: baseFare.money.currency
                             });
