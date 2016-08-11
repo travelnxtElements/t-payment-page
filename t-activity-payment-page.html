@@ -113,8 +113,10 @@
             is-data-provided-by-view>
         </t-policy>
 
-        <t-activity-itinerary-details
-            id="itineraryDetails"
+        <t-activity-itinerary-details 
+            activity-icon="[[activityIcon]]"
+            itinerary="[[itinerary]]"
+            selected-option="[[selectedOption]]"
             is-collapsible>
         </t-activity-itinerary-details>
 
@@ -310,8 +312,6 @@
                     if (this.$$('#address')) {
                         this._countryCall();
                     }
-
-                    this.$.itineraryDetails.setDetails(this.itinerary, this.searchCriteria);
 
                     this._setFareDetails();                    
                 },
