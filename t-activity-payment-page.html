@@ -193,7 +193,7 @@
 
         <t-sessionstorage
             id="sessionStore"
-            key="Activity_Booked_Itinerary"
+            key="Activitie_Booked_Itinerary"
             api-url-format="[[apiUrlFormat]]"
             on-t-sessionstorage-save-success="_onSessionSave">
         </t-sessionstorage>
@@ -401,11 +401,11 @@
                 */
                 _translateItinerary: function (bookedItinerary) {
 
-                    bookedItinerary.inventoriesInfo[0].searchCriteria.pickupTime = bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate.time;
-                    bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate = bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate.date;
+                    bookedItinerary.inventoriesInfo[0].searchCriteria.pickupTime = bookedItinerary.inventoriesInfo[0].searchCriteria.fromDate.time;
+                    bookedItinerary.inventoriesInfo[0].searchCriteria.pickupDate = bookedItinerary.inventoriesInfo[0].searchCriteria.fromDate.date;
 
-                    bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffTime = bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffDate.time;
-                    bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffDate = bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffDate.date;
+                    bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffTime = bookedItinerary.inventoriesInfo[0].searchCriteria.toDate.time;
+                    bookedItinerary.inventoriesInfo[0].searchCriteria.dropoffDate = bookedItinerary.inventoriesInfo[0].searchCriteria.toDate.date;
 
                     return {                            
                         confirmationNumber: bookedItinerary.confirmationNumber,
