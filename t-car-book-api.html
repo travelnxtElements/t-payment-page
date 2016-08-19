@@ -76,29 +76,15 @@
             /*
              * <p>Method to book cars</p>
              */
-            book: function(data) {
+            book: function(request) {
 
-                if (!data) {
+                if (!request) {
                     throw Error("book request is mandetory");
                 }
 
-                this.request = {
-                    inventoriesInfo: [{
-                        id: 0,
-                        passengerIds: [],
-                        paymentIds: [],
-                        leadPassengerId: 0,
-                        paymentBreakups: []
-                    }],
-                    passengers: [],
-                    payments: [],
-                    insuranceInfo: []
-                };
-
                 if (this._validateApiMeta()) {                
                     this.$.ajaxCall.url = this._getUrl();
-                    this._buildBookingRequest(data)
-                    this.$.ajaxCall.body = JSON.stringify(this.request);
+                    this.$.ajaxCall.body = JSON.stringify(request);
                     this.$.ajaxCall.generateRequest();
                 }
             },

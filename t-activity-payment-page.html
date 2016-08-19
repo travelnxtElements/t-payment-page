@@ -17,6 +17,7 @@
 <link rel="import" href="../t-policy/t-policy.html">
 <link rel="import" href="../t-behavior/t-page-behavior.html">
 <link rel="import" href="../t-behavior/t-activity-page-behavior.html">
+<link rel="import" href="t-activity-book-translator.html">
 
 <!--
     <h3>Details:</h3>
@@ -190,6 +191,11 @@
             on-t-car-book-api-success="_onBookSuccess"
             on-t-car-book-api-error="_onBookError">
         </t-car-book-api>
+        
+        <t-activity-book-translator
+            input="[[bookRequest]]"
+            on-output-changed="_bookItinerary">                
+        </t-activity-book-translator>
 
         <t-sessionstorage
             id="sessionStore"
@@ -220,16 +226,15 @@
                 properties: {
 
                     /*
-                     * <p>This property holds the value of passenger count selected against the selected option</p>
-                     */
-                    paxCountMap: {
-                        type: Array,
-                        notify: true
+                     * input parameter for book api translator
+                    */
+                    bookRequest: {
+                        type: Object
                     }
-                },
+                }
 
                 /*
-                 * <p>This method validated payment page information</p>
+                 * This method validated payment page information
                 */
                 validate: function () {
                     if (this.$.submit.disabled) {
@@ -244,7 +249,7 @@
                 },
             
                 /*
-                 * <p>This is the event handler for payment button click</p>
+                 * This is the event handler for payment button click
                 */
                 bookNow: function () {
 
@@ -256,13 +261,16 @@
                     if (this.validate()) {
                         this.$.submit.disabled = true;
                         this._showFullPageLoader = true;
-                        var data = this._getBookingData();
-                        this.$.bookApi.book(data);
+                        this._getBookingData();
                     }
                 },
 
+                _bookItinerary: function (apiRequest) {
+                    this.$.bookApi.book(apiRequest);
+                },
+
                 /*
-                 * <p>This is booking api success handler</p>
+                 * This is booking api success handler
                 */
                 _onBookSuccess: function (e) {
                     this._showFullPageLoader = false;
@@ -278,7 +286,7 @@
                 },
 
                 /*
-                 * <p>This is booking api error handler</p>
+                 * This is booking api error handler
                 */
                 _onBookError: function (e) {
                     this._showFullPageLoader = false;
@@ -290,7 +298,7 @@
                 },
 
                 /*
-                 * <p>observer function for page `authToken`, `passengerInfo` properties</p>
+                 * observer function for page `authToken`, `passengerInfo` properties
                 */
                 _pageLoad: function (authToken, passengerInfo, apiBaseUrl) {
 
@@ -305,7 +313,7 @@
                 },
 
                 /*
-                 * <p>Sets all the view data</p>
+                 * Sets all the view data
                 */
                 _setViewDetails: function () {
 
@@ -317,8 +325,8 @@
                 },
 
                 /*
-                * <p>translator method to set view components data</p>
-                * <p>This method overrides behavior implementation</p>
+                * translator method to set view components data
+                * This method overrides behavior implementation
                 */
                 _setFareDetails: function () {
                     if (!this.itinerary || !this.searchCriteria) {
@@ -335,7 +343,7 @@
                 },
 
                 /*
-                 * <p>Builds fare components to include passenger-wise prices as per passenger counts provided while pricing</p>
+                 * Builds fare components to include passenger-wise prices as per passenger counts provided while pricing
                 */
                 _buildFareComponents: function () {
                     if (!this.itinerary.options || !this.itinerary.options.length) {
@@ -385,11 +393,11 @@
                 },
 
                 /*
-                 * <p>This is session success handler</p>
+                 * This is session success handler
                 */
                 _getBookingData: function () {
 
-                    return {
+                    this.bookRequest = {
                         itinerary: this.itinerary,
                         passengerInfo: this.passengerInfo,
                         payment: this._getCreditCardInfo()
