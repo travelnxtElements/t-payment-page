@@ -102,22 +102,11 @@
             label="Trip Summary">              
         </t-section-header>
         
-        <t-policy id="policy" 
-            label="Booking Policies"
-            external-link
-            api-relative-url="api/ShoppingCart/add" 
-            api-base-url="[[apiBaseUrl]]"
-            auth-token="[[authToken]]"
-            search-id="[[searchId]]"
-            inventory-id="[[itinerary.id]]"
-            policies="[[itinerary.generalPolicies]]"
-            is-data-provided-by-view>
-        </t-policy>
-
         <t-activity-itinerary-details 
             activity-icon="[[activityIcon]]"
             itinerary="[[itinerary]]"
             selected-option="[[selectedOption]]"
+            policies="[[itinerary.generalPolicies]]"
             is-collapsible>
         </t-activity-itinerary-details>
 
