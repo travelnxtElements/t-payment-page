@@ -15,6 +15,7 @@
 <link rel="import" href="../t-behavior/t-page-behavior.html">
 <link rel="import" href="../t-loader/t-fullpage-loader.html">
 <link rel="import" href="../t-policy/t-policy.html">
+<link rel="import" href="../t-car-translator/t-car-book-translator.html">
 
 <!--
     <h3>Details:</h3>
@@ -192,6 +193,11 @@
             on-t-car-book-api-success="_onBookSuccess"
             on-t-car-book-api-error="_onBookError">
         </t-car-book-api>
+        
+        <t-activity-book-translator
+            input="[[bookRequest]]"
+            on-output-changed="_bookItinerary">                
+        </t-activity-book-translator>
 
         <t-sessionstorage
             id="sessionStore"
@@ -265,6 +271,13 @@
                     _showFullPageLoader: {
                         type: Boolean,
                         value: false
+                    },
+
+                    /*
+                     * input parameter for book api translator
+                    */
+                    bookRequest: {
+                        type: Object
                     }
                 },
 
@@ -408,9 +421,12 @@
                     if (this.validate()) {
                         this.$.submit.disabled = true;
                         this._showFullPageLoader = true;
-                        var data = this._getBookingData();
-                        this.$.bookApi.book(data);
+                        this._getBookingData();
                     }
+                },
+
+                _bookItinerary: function (e) {
+                    this.$.bookApi.book(e.detail.value);
                 },
 
                 /*
@@ -470,11 +486,11 @@
                 */
                 _getBookingData: function () {
 
-                    return {
+                    this.bookRequest = {
                         itinerary: this.itinerary,
                         passengerInfo: this.passengerInfo,
                         payment: this.itinerary.isPostPaid ? null : this._getCreditCardInfo()
-                    }        
+                    };
                 },
 
                 /*
