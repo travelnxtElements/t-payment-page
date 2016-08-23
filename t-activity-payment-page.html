@@ -114,6 +114,7 @@
         <t-faredetails 
             id="fareDetails"
             is-collapsible
+            passenger-details="[[paxCountMap]]"
             itinerary-fare-label="Selected Option Rate">
             <div class="passenger-fare-components">
                 <template is="dom-repeat" items="[[_passengerFares]]">
