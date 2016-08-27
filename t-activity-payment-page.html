@@ -18,6 +18,7 @@
 <link rel="import" href="../t-behavior/t-page-behavior.html">
 <link rel="import" href="../t-behavior/t-activity-page-behavior.html">
 <link rel="import" href="../t-activity-translator/t-activity-book-translator.html">
+<link rel="import" href="../t-behavior/t-session-behavior.html"/>
 
 <!--
     <h3>Details:</h3>
@@ -138,23 +139,23 @@
             </t-fullpage-loader>
         </template>
 
-	    <t-section-header
-	        class="margin-bottom"
-	        id="paymentHeader"
-	        label="Payment Information">              
-	    </t-section-header>
+        <t-section-header
+            class="margin-bottom"
+            id="T-section-header1"
+            label="Payment Information">              
+        </t-section-header>
 
-	    <t-creditcard 
-	        id="creditCard">
-	    </t-creditcard>
+        <t-creditcard 
+            id="creditCard">
+        </t-creditcard>
 
-	    <t-address 
-	        id="address"
-	        prevent-auto-populate
-	        country-api="[[apiBaseUrl]]api/content/countries"
-	        base-geo-api="[[apiBaseUrl]]api/content"
-	        query-params="?token=[[authToken]]">
-	    </t-address>
+        <t-address 
+            id="address"
+            prevent-auto-populate
+            country-api="[[apiBaseUrl]]api/content/countries"
+            base-geo-api="[[apiBaseUrl]]api/content"
+            query-params="?token=[[authToken]]">
+        </t-address>
 
         <div class="layout horizontal start section-small">
             <t-checkbox id="acceptance" checked="{{checked}}"><div hidden>something</div></t-checkbox>
@@ -188,10 +189,11 @@
             on-output-changed="_bookItinerary">                
         </t-activity-book-translator>
 
+        
         <t-sessionstorage
             id="sessionStore"
-            key="Activitie_Booked_Itinerary"
             api-url-format="[[apiUrlFormat]]"
+            on-t-sessionstorage-load-success="_onSessionGet"
             on-t-sessionstorage-save-success="_onSessionSave">
         </t-sessionstorage>
     </template>
@@ -208,10 +210,10 @@
 
                 behaviors: [
                     TravelNxt.Behaviors.PageLoadBehavior,
-                    TravelNxt.Behaviors.PaymentBehavior,
                     TravelNxt.Behaviors.DateBehavior,
                     TravelNxt.Behaviors.PageBehavior,
-                    TravelNxt.Behaviors.ActivityPageBehavior
+                    TravelNxt.Behaviors.ActivityPageBehavior,
+                    TravelNxt.Behaviors.SessionBehavior
                 ],
 
                 properties: {
@@ -221,18 +223,163 @@
                     */
                     bookRequest: {
                         type: Object
+                    },
+
+                    /*
+                     * <p>This is the timer value in milliseconds which is used to alter the processing message</p>
+                    */
+                    paymentTimer: {
+                        type: String,
+                        value: '10000'
+                    },
+
+                    /*
+                     * <p>This is the processing message</p>
+                    */
+                    _processingMsg: {
+                        type: Boolean,
+                        value: false
+                    },
+
+                    /*
+                     * <p>This is the long processing message</p>
+                     * <p>It gets displayed when `paymentTimer` is exceeded</p>
+                    */
+                    _longProcessingMsg: {
+                        type: Boolean,
+                        value: true
+                    },
+
+                    /*
+                     * <p>This flag toggles visibility of full page loader</p>
+                    */
+                    _showFullPageLoader: {
+                        type: Boolean,
+                        value: false
                     }
                 },
 
+                observers:[
+                    '__pageLoad(visible)'
+                ],
+                
+                listeners: {
+                    'session-get-complete': '_updatePage'
+                },
+                /*
+                 * observer function for page `authToken`, `passengerInfo` properties
+                */
+                __pageLoad: function (visible) {
+
+                    if (!visible){
+                        return;
+                    }
+
+                    this._syncSession();
+
+                },
+
+                /*
+                 * <p>this method gets called when page becomes visible</p>
+                 * <p>`go-to-search` event is fired if `bookedItinerary` property is not set.</p>
+                */
+                _updatePage: function (visible) {
+
+                    this.$.notify.active = false;
+
+                    this.$.acceptance.checked = false;
+                    
+                    if (visible && (!this.passengerInfo  || !this.selectedOption || !this.itinerary || !this.searchCriteria)) {
+                        this.fire('go-to-search');
+                    }
+
+                    //sets passenger count mapping
+                    this._setPaxDetails();
+
+                    this._setViewDetails();
+                },
+
+                /*
+                 * <p>This method envokes country call to populate countrie in dropdown</p>
+                 * <p>It is envoked only when payment is prepaid</p>
+                */
+                _countryCall: function () {
+                    if(!this.itinerary || this.itinerary.isPostPaid || !this.passengerInfo) {
+                        return;
+                    }
+                    this.$$('#address').pullCountryList();
+                    this.$$('#address').$.phoneNumber.value = this.passengerInfo.phone;
+                    this.$$('#creditCard').$.securityCode.value = '';
+                },
+
+                /*
+                 * <p>Session storage save event handler</p>
+                */
+                _onSessionSave: function () {
+                    this.bookedItinerary = this.$.sessionStore.value;
+                    this.fire('book-success', this.$.sessionStore.value);
+                },
+
+                /*
+                 * <p>This method collects credit card information.</p>
+                */
+                _getCreditCardInfo: function () {
+                    var address = this.$$('#address').getAddress();
+                    var payment = this.$$('#creditCard').getInfo();
+                    payment.billingAddress = address;
+
+                    return payment;
+                },
+
+                /*
+                 * <p>This is a translator method to set fare details data</p>
+                */
+                _setFareDetails: function (baseFareLabel) {
+                    if (!this.itinerary || !this.searchCriteria) {
+                        return;
+                    }
+
+                    var formattedDate = this._getDateComponents(this.searchCriteria.pickupDate);
+                    var pickupDate = formattedDate.date + ' ' + formattedDate.shortMonth + ' ' + this.searchCriteria.pickupTime;
+
+                    formattedDate = this._getDateComponents(this.searchCriteria.dropoffDate);
+                    var dropoffDate = formattedDate.date + ' ' + formattedDate.shortMonth + ' ' + this.searchCriteria.dropoffTime;
+
+                    this.$.fareDetails.baseFareLabel = baseFareLabel + this._dateDiff(pickupDate, dropoffDate);
+
+                    if (this.itinerary.fare && this.itinerary.fare.components) {
+                        this.$.fareDetails.data = this.itinerary.fare.components;
+                    }
+                },
+
+                /*
+                 * <p>handler for booking message timer calculation</p>
+                */
+                _bindTimer: function () {
+
+                    var _timer = setTimeout(function () {
+                        this._processingMsg = true;
+                        this._longProcessingMsg = false;
+                    }.bind(this), parseInt(this.paymentTimer));
+                },
+                
+                /*
+                 * <p>handler to make terms and condition clickable & checks the checkbox</p>
+                */
+                _checkBoxCheck: function (e) {
+                    if (e.srcElement.tagName.toLowerCase() !== 'a') {
+                        this.checked = !this.checked;
+                    }
+                },
                 /*
                  * This method validated payment page information
                 */
                 validate: function () {
                     if (this.$.submit.disabled) {
-                      return false;
+                        return false;
                     }
                     if (this.itinerary.isPostPaid) {
-                      return true;
+                        return true;
                     }
                     var isValid = true;
                     isValid = this.$$('#address').validate() && isValid;
@@ -269,11 +416,16 @@
                     this.stayOnPage = false;
                     
                     if (!e.detail) {
-                      return;
+                        return;
                     }
 
-                    this.$.sessionStore.value = e.detail;
-                    this.$.sessionStore.save();
+                    this._data = [{
+                        key: 'Activitie_Booked_Itinerary',
+                        propertyName: 'bookedResponse',
+                        value: e.detail
+                    }];
+
+                    this.setSession();
                 },
 
                 /*
@@ -288,20 +440,6 @@
                     this.fire('book-error');
                 },
 
-                /*
-                 * observer function for page `authToken`, `passengerInfo` properties
-                */
-                _pageLoad: function (authToken, passengerInfo, apiBaseUrl) {
-
-                    if (!passengerInfo || !authToken || !apiBaseUrl){
-                        return;
-                    }
-
-                    //sets passenger count mapping
-                    this._setPaxDetails();
-
-                    this._setViewDetails();
-                },
 
                 /*
                  * Sets all the view data
@@ -381,6 +519,23 @@
                     }
 
                     this._passengerFares = passengerFares;
+                },
+
+                _syncSession: function () {
+                    this._data = [{
+                        key: 'Activitie_Search_Criteria',
+                        propertyName: 'searchCriteria'
+                    },{
+                        key: 'Activitie_Itinerary',
+                        propertyName: 'itinerary'
+                    },{
+                        key: 'Activitie_Option',
+                        propertyName: 'selectedOption'
+                    },{
+                        key: 'Activitie_Passenger_Details',
+                        propertyName: 'passengerInfo'
+                    }];
+                    this.getSession();
                 },
 
                 /*
