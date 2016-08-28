@@ -12,10 +12,11 @@
 <link rel="import" href="../t-text-container/travel-element-styles.html">
 <link rel="import" href="../t-shared-lib/t-page-load-behavior.html">
 <link rel="import" href="../t-shared-lib/t-date-behavior.html">
-<link rel="import" href="../t-behavior/t-page-behavior.html">
 <link rel="import" href="../t-loader/t-fullpage-loader.html">
 <link rel="import" href="../t-policy/t-policy.html">
 <link rel="import" href="../t-car-translator/t-car-book-translator.html">
+<link rel="import" href="../t-behavior/t-page-behavior.html">
+<link rel="import" href="../t-behavior/t-session-behavior.html"/>
 
 <!--
     <h3>Details:</h3>
@@ -201,8 +202,8 @@
 
         <t-sessionstorage
             id="sessionStore"
-            key="Car_Booked_Itinerary"
             api-url-format="[[apiUrlFormat]]"
+            on-t-sessionstorage-load-success="_onSessionGet"
             on-t-sessionstorage-save-success="_onSessionSave">
         </t-sessionstorage>
     </template>
@@ -220,7 +221,8 @@
                 behaviors: [
                     TravelNxt.Behaviors.PageBehavior,
                     TravelNxt.Behaviors.DateBehavior,
-                    TravelNxt.Behaviors.PageLoadBehavior
+                    TravelNxt.Behaviors.PageLoadBehavior,
+                    TravelNxt.Behaviors.SessionBehavior
                 ],
 
                 properties: {
@@ -230,14 +232,6 @@
                     */
                     _payableAmount: {
                         type: String
-                    },
-
-                    /*
-                     * <p>This property holds the value of booked itinerary</p>
-                    */
-                    bookedItinerary: {
-                        type: Object,
-                        notify: true
                     },
 
                     /*
@@ -287,7 +281,8 @@
                 ],
 
                 listeners: {
-                    'policy-click': '_showPolicies'
+                    'policy-click': '_showPolicies',
+                    'session-get-complete': '_updatePage'
                 },
 
                 /*
@@ -304,12 +299,38 @@
 
                     this.$.acceptance.checked = false;
 
+                    this._syncSession();
+                },
+
+                _updatePage: function () {
+
+                    if (!this.passengerInfo || !this.itinerary || !this.searchCriteria) {
+                        this.fire('go-to-search');
+                        return;
+                    }
+
                     this._setViewDetails();
 
                     this._getPayableAmount();
 
                     //initiate policy component
                     this.$.policy.initiatePolicyView();
+                    
+                },
+
+                _syncSession: function () {
+                    this._data = [{
+                        key: 'Car_Search_Criteria',
+                        propertyName: 'searchCriteria'
+                    }, {
+                        key: 'Car_Passenger_Details',
+                        propertyName: 'passengerInfo'
+                    }, {
+                        key: 'Car_Itinerary',
+                        propertyName: 'itinerary'
+                    }];
+
+                    this.getSession();                    
                 },
 
                 /*
@@ -321,35 +342,17 @@
                 },
 
                 /*
-                 * <p>This method envokes country call to populate countrie in dropdown</p>
-                 * <p>It is envoked only when payment is prepaid</p>
+                 * <p>Sets all the view data</p>
                 */
-                _countryCall: function () {
-                    if(!this.itinerary || this.itinerary.isPostPaid || !this.passengerInfo) {
-                        return;
+                _setViewDetails: function () {
+
+                    if (this.$$('#address')) {
+                        this._countryCall();
                     }
-                    this.$$('#address').pullCountryList();
-                    this.$$('#address').$.phoneNumber.value = this.passengerInfo.phone;
-                    this.$$('#creditCard').$.securityCode.value = '';
-                },
 
-                /*
-                 * <p>Session storage save event handler</p>
-                */
-                _onSessionSave: function () {
-                    this.bookedItinerary = this.$.sessionStore.value;
-                    this.fire('book-success', this.$.sessionStore.value);
-                },
+                    this.$.itineraryDetails.setDetails(this.itinerary, this.searchCriteria);
 
-                /*
-                 * <p>This method collects credit card information.</p>
-                */
-                _getCreditCardInfo: function () {
-                    var address = this.$$('#address').getAddress();
-                    var payment = this.$$('#creditCard').getInfo();
-                    payment.billingAddress = address;
-
-                    return payment;
+                    this._setFareDetails('Avg. per day rate x ');                    
                 },
 
                 /*
@@ -371,6 +374,30 @@
                     if (this.itinerary.fare && this.itinerary.fare.components) {
                         this.$.fareDetails.data = this.itinerary.fare.components;
                     }
+                },
+
+                /*
+                 * <p>This method envokes country call to populate countrie in dropdown</p>
+                 * <p>It is envoked only when payment is prepaid</p>
+                */
+                _countryCall: function () {
+                    if(!this.itinerary || this.itinerary.isPostPaid || !this.passengerInfo) {
+                        return;
+                    }
+                    this.$$('#address').pullCountryList();
+                    this.$$('#address').$.phoneNumber.value = this.passengerInfo.phone;
+                    this.$$('#creditCard').$.securityCode.value = '';
+                },
+
+                /*
+                 * <p>This method collects credit card information.</p>
+                */
+                _getCreditCardInfo: function () {
+                    var address = this.$$('#address').getAddress();
+                    var payment = this.$$('#creditCard').getInfo();
+                    payment.billingAddress = address;
+
+                    return payment;
                 },
 
                 /*
@@ -441,8 +468,16 @@
                       return;
                     }
 
-                    this.$.sessionStore.value = this._translateItinerary(e.detail);
-                    this.$.sessionStore.save();
+                    this.bookedItinerary = this._translateItinerary(e.detail);
+
+                    this._data = [{
+                        key: 'Car_Booked_Itinerary',
+                        value: this.bookedItinerary
+                    }];
+
+                    this.setSession();
+
+                    this.fire('book-success');
                 },
 
                 /*
@@ -455,20 +490,6 @@
                     this.stayOnPage = false;
                     this.$.notify.message = event.detail.message;
                     this.fire('book-error');
-                },
-
-                /*
-                 * <p>Sets all the view data</p>
-                */
-                _setViewDetails: function () {
-
-                    if (this.$$('#address')) {
-                        this._countryCall();
-                    }
-
-                    this.$.itineraryDetails.setDetails(this.itinerary, this.searchCriteria);
-
-                    this._setFareDetails('Avg. per day rate x ');                    
                 },
 
                 /*
