@@ -256,6 +256,14 @@
                     _showFullPageLoader: {
                         type: Boolean,
                         value: false
+                    },
+
+                    /**
+                     * Preselected country in address field
+                     * @type {String}
+                     */
+                    preselectCountry: {
+                        type: String
                     }
                 },
 
@@ -310,6 +318,9 @@
                     this.$$('#address').pullCountryList();
                     this.$$('#address').$.phoneNumber.value = this.passengerInfo.phone;
                     this.$$('#creditCard').$.securityCode.value = '';
+                    if (this.preselectCountry && this.preselectCountry.length) {
+                        this.$.address.preselectCountry = this.preselectCountry;    
+                    }
                 },
 
                 /*
