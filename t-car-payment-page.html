@@ -110,6 +110,8 @@
             search-id="[[searchId]]"
             inventory-id="[[itinerary.id]]"
             header-icon="[[headerBackIcon]]"
+            policy-failed="[[!itinerary.generalPolicies
+            || !itinerary.generalPolicies.length]]"
             policies="[[itinerary.generalPolicies]]"
             is-data-provided-by-view>
         </t-policy>
