@@ -110,8 +110,7 @@
             search-id="[[searchId]]"
             inventory-id="[[itinerary.id]]"
             header-icon="[[headerBackIcon]]"
-            policy-failed="[[!itinerary.generalPolicies
-            || !itinerary.generalPolicies.length]]"
+            policy-failed="[[_policyFailed]]"
             policies="[[itinerary.generalPolicies]]"
             is-data-provided-by-view>
         </t-policy>
@@ -270,6 +269,11 @@
                         value: false
                     },
 
+                    _policyFailed: {
+                        type: Boolean,
+                        value: false
+                    },
+
                     /*
                      * input parameter for book api translator
                     */
@@ -324,6 +328,9 @@
 
                     this._getPayableAmount();
 
+                    if (!this.itinerary.generalPolicies
+                        || !this.itinerary.generalPolicies.length)
+                        this._policyFailed = true;
                     //initiate policy component
                     this.$.policy.initiatePolicyView();
                     

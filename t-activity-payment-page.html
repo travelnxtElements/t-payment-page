@@ -107,8 +107,8 @@
             activity-icon="[[activityIcon]]"
             itinerary="[[itinerary]]"
             selected-option="[[selectedOption]]"
-            show-policy-error="[[!itinerary.generalPolicies
-            || !itinerary.generalPolicies.length]]"
+            cancellation-policies="[[_cancellationPolicies]]"
+            show-policy-error="[[_policyError]]"
             policies="[[itinerary.generalPolicies]]"
             header-back-icon="[[headerBackIcon]]"
             is-collapsible>
@@ -260,6 +260,16 @@
                         value: false
                     },
 
+                    _cancellationPolicies: {
+                        type: Array,
+                        value: []
+                    },
+
+                    _policyError: {
+                        type: Boolean,
+                        value: false
+                    },
+
                     /**
                      * Preselected country in address field
                      * @type {String}
@@ -307,6 +317,34 @@
                     this._setPaxDetails();
 
                     this._setViewDetails();
+
+                    this._setPolicies();
+                },
+
+                _setPolicies: function () {
+                    this._cancellationPolicies = this._decorateOtherPolicies(this.itinerary.policies);
+
+                    //set policy error flag
+                    if (!(this.itinerary.generalPolicies && this.itinerary.generalPolicies.length)
+                        && !(this.itinerary.policies && this.itinerary.policies.length)) {
+                        this._policyError = true;
+                    }
+                },
+
+                _decorateOtherPolicies: function (policies) {
+                    policies.forEach(function (policy) {
+                        if (policy.penalty.components && policy.penalty.components.length) {
+                            var fareComponents = policy.penalty.components;
+                            for (var i = 0; i < fareComponents.length; i++) {
+                                if (fareComponents[i].type.toLowerCase() == "totalfare") {
+                                    policy.penalty.totalFare = fareComponents[i].money;
+                                }
+                            }
+                        }
+                        policy.isSameDay = policy.window.start.date == policy.window.end.date;
+                    });
+
+                    return policies;
                 },
 
                 /*
