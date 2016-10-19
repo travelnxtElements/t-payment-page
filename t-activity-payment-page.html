@@ -355,7 +355,9 @@
                         return;
                     }
                     this.$$('#address').pullCountryList();
-                    this.$$('#address').$$('#phoneNumber').value = this.passengerInfo.phone;
+                    setTimeout(function () {
+                        this.$$('#address').$$('#phoneNumber').value = this.passengerInfo.phone;
+                    }.bind(this), 10);
                     this.$$('#creditCard').$.securityCode.value = '';
                     if (this.preselectCountry && this.preselectCountry.length) {
                         this.$.address.preselectCountry = this.preselectCountry;    
