@@ -188,9 +188,8 @@
         
         <t-activity-book-translator
             input="[[bookRequest]]"
-            on-output-changed="_bookItinerary">                
+            on-output-changed="_bookItinerary">
         </t-activity-book-translator>
-
         
         <t-sessionstorage
             id="sessionStore"
@@ -356,7 +355,7 @@
                         return;
                     }
                     this.$$('#address').pullCountryList();
-                    this.$$('#address').$.phoneNumber.value = this.passengerInfo.phone;
+                    this.$$('#address').$$('#phoneNumber').value = this.passengerInfo.phone;
                     this.$$('#creditCard').$.securityCode.value = '';
                     if (this.preselectCountry && this.preselectCountry.length) {
                         this.$.address.preselectCountry = this.preselectCountry;    
