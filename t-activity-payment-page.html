@@ -356,7 +356,7 @@
                     }
                     this.$$('#address').pullCountryList();
                     setTimeout(function () {
-                        this.$$('#address').$$('#phoneNumber').value = this.passengerInfo.phone;
+                        this.$$('#address').$$("#phoneNumber").value = this.passengerInfo.phone;
                     }.bind(this), 10);
                     this.$$('#creditCard').$.securityCode.value = '';
                     if (this.preselectCountry && this.preselectCountry.length) {
