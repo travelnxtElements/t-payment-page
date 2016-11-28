@@ -104,6 +104,7 @@
         </t-section-header>
         
         <t-activity-itinerary-details 
+            id="details"
             activity-icon="[[activityIcon]]"
             itinerary="[[itinerary]]"
             selected-option="[[selectedOption]]"
@@ -328,6 +329,11 @@
                         && !(this.itinerary.policies && this.itinerary.policies.length)) {
                         this._policyError = true;
                     }
+                },
+
+                _showPolicies: function () {
+                    this.$.details._openActivityCollapse = true;
+                    this.$.details._policyClick();
                 },
 
                 _decorateOtherPolicies: function (policies) {
